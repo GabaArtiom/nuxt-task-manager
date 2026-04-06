@@ -12,7 +12,7 @@
       ]"
       @click="toggle"
     >
-      <span :class="!modelValue && 'text-gray-400 dark:text-gray-500'">
+      <span class="truncate" :class="!modelValue && 'text-gray-400 dark:text-gray-500'">
         {{ selectedLabel || placeholder }}
       </span>
       <ChevronDown

@@ -49,6 +49,12 @@ export default defineNuxtConfig({
     },
   },
 
+  nitro: {
+    routeRules: {
+      '/sse': { headers: { 'X-Accel-Buffering': 'no' } },
+    },
+  },
+
   components: [
     { path: '~/components', pathPrefix: false },
   ],

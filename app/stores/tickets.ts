@@ -13,10 +13,12 @@ export const useTicketsStore = defineStore('tickets', {
     tickets: [] as Ticket[],
     pagination: null as Pagination | null,
     loading: false,
+    lastParams: {} as Record<string, string>,
   }),
 
   actions: {
     async fetchTickets(params: Record<string, string> = {}) {
+      this.lastParams = params
       this.loading = true
       try {
         const query = new URLSearchParams(params).toString()

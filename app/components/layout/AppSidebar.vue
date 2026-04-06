@@ -95,7 +95,7 @@ import { useAuthStore } from '~/stores/auth'
 const auth = useAuthStore()
 const route = useRoute()
 const { t } = useI18n()
-const collapsed = ref(false)
+const collapsed = useState('sidebar-collapsed', () => false)
 const mobileOpen = ref(false)
 
 const userInitials = computed(() => {
