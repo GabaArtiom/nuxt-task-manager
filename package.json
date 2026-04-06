@@ -1,0 +1,54 @@
+{
+  "name": "ticket-management-system",
+  "private": true,
+  "engines": {
+    "node": "22.*"
+  },
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare && prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "prisma db seed",
+    "db:reset": "prisma migrate reset"
+  },
+  "prisma": {
+    "seed": "npx tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@nuxtjs/i18n": "^10.2.4",
+    "@pinia/nuxt": "^0.11.3",
+    "@prisma/client": "^6.5.0",
+    "@vee-validate/zod": "^4.15.0",
+    "bcryptjs": "^2.4.3",
+    "chart.js": "^4.4.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "lucide-vue-next": "^0.469.0",
+    "nodemailer": "^6.10.0",
+    "nuxt": "^4.4.0",
+    "pinia": "^3.0.4",
+    "radix-vue": "^1.9.0",
+    "tailwind-merge": "^3.0.0",
+    "vee-validate": "^4.15.0",
+    "vue": "^3.5.0",
+    "vue-chartjs": "^5.3.0",
+    "vue-router": "^4.5.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@nuxtjs/tailwindcss": "^6.13.0",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/nodemailer": "^6.4.17",
+    "prisma": "^6.5.0",
+    "tailwindcss": "^3.4.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}

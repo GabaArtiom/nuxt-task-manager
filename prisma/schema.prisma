@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                    String    @id @default(uuid()) @db.Uuid
+  name                  String    @db.VarChar(100)
+  family_name           String    @db.VarChar(100)
+  email                 String    @unique @db.VarChar(255)
+  password              String
+  role                  String    @db.VarChar(20) // 'admin' | 'technician'
+  is_locked             Boolean   @default(false)
+  reset_token           String?
+  reset_token_expires_at DateTime?
+  created_at            DateTime  @default(now())
+
+  assigned_tickets Ticket[] @relation("AssignedTickets")
+  created_tickets  Ticket[] @relation("CreatedTickets")
+
+  @@map("users")
+}
+
+model Ticket {
+  id            String   @id @default(uuid()) @db.Uuid
+  customer_name String   @db.VarChar(255)
+  description   String?  @db.Text
+  type          String   @db.VarChar(50) // 'Bug' | 'Fixes' | 'Improvement' | 'Info' | 'Typo' | 'Other'
+  is_urgent     Boolean  @default(false)
+  status        String   @default("to_be_worked") @db.VarChar(50)
+  assigned_to   String?  @db.Uuid
+  created_by    String   @db.Uuid
+  created_at    DateTime @default(now())
+  updated_at    DateTime @default(now()) @updatedAt
+
+  assignee User? @relation("AssignedTickets", fields: [assigned_to], references: [id], onDelete: SetNull)
+  creator  User  @relation("CreatedTickets", fields: [created_by], references: [id])
+
+  @@map("tickets")
+}
