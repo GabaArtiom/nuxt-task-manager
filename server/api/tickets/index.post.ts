@@ -1,5 +1,6 @@
 import { prisma } from '~~/server/utils/db'
 import { requireAuth } from '~~/server/utils/auth'
+import { broadcast } from '~~/server/utils/sse'
 
 const VALID_TYPES = ['Bug', 'Fixes', 'Improvement', 'Info', 'Typo', 'Other']
 
@@ -35,5 +36,6 @@ export default defineEventHandler(async (event) => {
     },
   })
 
+  broadcast('ticket:created', ticket)
   return ticket
 })

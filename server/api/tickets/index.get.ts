@@ -46,7 +46,7 @@ export default defineEventHandler(async (event) => {
 
   // Pagination
   const page = Math.max(1, Number(query.page) || 1)
-  const perPage = 20
+  const perPage = [10, 15, 20].includes(Number(query.limit)) ? Number(query.limit) : 10
   const skip = (page - 1) * perPage
 
   const [tickets, total] = await Promise.all([

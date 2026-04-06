@@ -1,5 +1,6 @@
 import { prisma } from '~~/server/utils/db'
 import { requireAuth } from '~~/server/utils/auth'
+import { broadcast } from '~~/server/utils/sse'
 
 const VALID_STATUSES = ['to_be_worked', 'in_progress', 'done', 'canceled']
 const VALID_TYPES = ['Bug', 'Fixes', 'Improvement', 'Info', 'Typo', 'Other']
@@ -66,5 +67,6 @@ export default defineEventHandler(async (event) => {
     },
   })
 
+  broadcast('ticket:updated', updated)
   return updated
 })

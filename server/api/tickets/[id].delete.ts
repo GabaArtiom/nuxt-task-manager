@@ -1,5 +1,6 @@
 import { prisma } from '~~/server/utils/db'
 import { requireAdmin } from '~~/server/utils/auth'
+import { broadcast } from '~~/server/utils/sse'
 
 export default defineEventHandler(async (event) => {
   await requireAdmin(event)
@@ -12,5 +13,6 @@ export default defineEventHandler(async (event) => {
 
   await prisma.ticket.delete({ where: { id } })
 
+  broadcast('ticket:deleted', { id })
   return { ok: true }
 })
