@@ -11,16 +11,19 @@
       <div class="w-40">
         <CustomSelect v-model="filters.status" :options="statusOptions" />
       </div>
-      <div class="w-36">
+      <div class="w-40">
         <CustomSelect v-model="filters.urgent" :options="urgencyOptions" />
       </div>
       <div v-if="auth.isAdmin" class="w-48">
         <CustomSelect v-model="filters.technician_id" :options="techOptions" />
       </div>
+      <div class="w-24">
+        <CustomSelect v-model="perPage" :options="perPageOptions" />
+      </div>
     </div>
 
-    <div v-if="ticketsStore.loading" class="flex items-center justify-center py-20">
-      <div class="w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin" />
+    <div v-if="ticketsStore.loading" class="py-8">
+      <SkeletonTable :rows="10" />
     </div>
 
     <div v-else-if="!ticketsStore.tickets.length" class="text-center py-20">
@@ -75,6 +78,7 @@ const ticketsStore = useTicketsStore()
 const selectedTicket = ref<Ticket | null>(null)
 const technicians = ref<User[]>([])
 const page = ref(1)
+const perPage = ref(process.client ? (localStorage.getItem('tickets_per_page') || '10') : '10')
 const filters = reactive({
   status: '',
   urgent: '',
@@ -97,11 +101,20 @@ const techOptions = computed(() => [
   { value: '', label: t('tickets.allTechnicians') },
   ...technicians.value.map(u => ({ value: u.id, label: `${u.name} ${u.family_name}` })),
 ])
+const perPageOptions = [
+  { value: '10', label: '10' },
+  { value: '15', label: '15' },
+  { value: '20', label: '20' },
+]
 
-watch(filters, () => { page.value = 1; fetchTickets() })
+watch([filters, perPage], () => {
+  page.value = 1
+  if (process.client) localStorage.setItem('tickets_per_page', perPage.value)
+  fetchTickets()
+})
 
 async function fetchTickets() {
-  const params: Record<string, string> = { my: 'true', page: String(page.value) }
+  const params: Record<string, string> = { my: 'true', page: String(page.value), limit: String(perPage.value) }
   if (filters.status) params.status = filters.status
   else if (!auth.isAdmin) params.active = 'true'
   if (filters.urgent) params.urgent = filters.urgent
@@ -115,6 +128,8 @@ onMounted(async () => {
     try { technicians.value = await $fetch<User[]>('/api/users') } catch {}
   }
 })
+
+useRealtimeUpdates()
 </script>
 
 <style scoped>

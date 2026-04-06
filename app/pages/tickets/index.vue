@@ -28,10 +28,20 @@
       <div class="w-36">
         <CustomSelect v-model="filters.urgent" :options="urgencyOptions" />
       </div>
+      <div class="w-24">
+        <CustomSelect v-model="perPage" :options="perPageOptions" />
+      </div>
+      <button
+        v-if="hasActiveFilters"
+        @click="clearFilters"
+        class="px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+      >
+        {{ $t('tickets.clearFilters') }}
+      </button>
     </div>
 
-    <div v-if="ticketsStore.loading" class="flex items-center justify-center py-20">
-      <div class="w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin" />
+    <div v-if="ticketsStore.loading" class="py-8">
+      <SkeletonTable :rows="10" />
     </div>
 
     <div v-else-if="!ticketsStore.tickets.length" class="text-center py-20">
@@ -82,10 +92,20 @@ definePageMeta({ middleware: 'auth' })
 const { t } = useI18n()
 const auth = useAuthStore()
 const ticketsStore = useTicketsStore()
+const route = useRoute()
+const router = useRouter()
 const selectedTicket = ref<Ticket | null>(null)
 const technicians = ref<User[]>([])
 const page = ref(1)
-const filters = reactive({ view: auth.isAdmin ? 'all' : 'unassigned', status: '', type: '', urgent: '' })
+const perPage = ref(process.client ? (localStorage.getItem('tickets_per_page') || '10') : '10')
+
+// Initialize filters from URL query params
+const filters = reactive({
+  view: (route.query.view as string) || (auth.isAdmin ? 'all' : 'unassigned'),
+  status: (route.query.status as string) || '',
+  type: (route.query.type as string) || '',
+  urgent: (route.query.urgent as string) || '',
+})
 
 const viewOptions = computed(() => [
   { value: 'all', label: t('tickets.allTickets') },
@@ -107,11 +127,47 @@ const urgencyOptions = computed(() => [
   { value: 'true', label: t('tickets.urgent') },
   { value: 'false', label: t('tickets.notUrgent') },
 ])
+const perPageOptions = [
+  { value: '10', label: '10' },
+  { value: '15', label: '15' },
+  { value: '20', label: '20' },
+]
 
-watch(filters, () => { page.value = 1; fetchTickets() })
+const hasActiveFilters = computed(() => {
+  const defaultView = auth.isAdmin ? 'all' : 'unassigned'
+  return filters.view !== defaultView || filters.status !== '' || filters.type !== '' || filters.urgent !== ''
+})
+
+function clearFilters() {
+  filters.view = auth.isAdmin ? 'all' : 'unassigned'
+  filters.status = ''
+  filters.type = ''
+  filters.urgent = ''
+}
+
+// Debounced filters watcher
+let debounceTimeout: NodeJS.Timeout | null = null
+watch([filters, perPage], () => {
+  if (debounceTimeout) clearTimeout(debounceTimeout)
+  debounceTimeout = setTimeout(() => {
+    page.value = 1
+    if (process.client) localStorage.setItem('tickets_per_page', perPage.value)
+    updateURLParams()
+    fetchTickets()
+  }, 300)
+})
+
+function updateURLParams() {
+  const query: Record<string, string> = {}
+  if (filters.view !== (auth.isAdmin ? 'all' : 'unassigned')) query.view = filters.view
+  if (filters.status) query.status = filters.status
+  if (filters.type) query.type = filters.type
+  if (filters.urgent) query.urgent = filters.urgent
+  router.replace({ query })
+}
 
 async function fetchTickets() {
-  const params: Record<string, string> = { page: String(page.value) }
+  const params: Record<string, string> = { page: String(page.value), limit: String(perPage.value) }
   if (filters.view === 'unassigned' || !auth.isAdmin) {
     params.unassigned = 'true'
     if (!filters.status) params.status = 'to_be_worked'
@@ -128,6 +184,8 @@ onMounted(async () => {
     try { technicians.value = await $fetch<User[]>('/api/users') } catch {}
   }
 })
+
+useRealtimeUpdates()
 </script>
 
 <style scoped>
