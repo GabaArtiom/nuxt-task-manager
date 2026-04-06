@@ -71,6 +71,14 @@
 
               <!-- Edit section -->
               <div class="border-t border-gray-100 dark:border-gray-800 pt-6 space-y-5">
+                <!-- Type (admin only) -->
+                <div v-if="auth.isAdmin">
+                  <label class="label">{{ $t('tickets.type') }}</label>
+                  <div class="mt-1.5">
+                    <CustomSelect v-model="form.type" :options="typeOptions" />
+                  </div>
+                </div>
+
                 <!-- Status -->
                 <div>
                   <label class="label">{{ $t('tickets.status') }}</label>
@@ -179,15 +187,18 @@ const toast = useToast()
 const saving = ref(false)
 const showDeleteConfirm = ref(false)
 
-const form = reactive({ status: '', is_urgent: false, assigned_to: '' as string })
+const form = reactive({ status: '', type: '', is_urgent: false, assigned_to: '' as string })
 
 watch(() => props.ticket, (tk) => {
   if (tk) {
     form.status = tk.status
+    form.type = tk.type
     form.is_urgent = tk.is_urgent
     form.assigned_to = tk.assigned_to || ''
   }
 }, { immediate: true })
+
+const typeOptions = ['Bug', 'Fixes', 'Improvement', 'Info', 'Typo', 'Other'].map(v => ({ value: v, label: v }))
 
 const statusOptions = computed(() => [
   { value: 'to_be_worked', label: t('tickets.statusToBeWorked') },
@@ -213,6 +224,7 @@ async function save() {
   try {
     const updated = await ticketsStore.updateTicket(props.ticket.id, {
       status: form.status as any,
+      type: form.type as any,
       is_urgent: form.is_urgent,
       assigned_to: form.assigned_to || null,
     })

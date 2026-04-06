@@ -5,19 +5,14 @@ export function useTheme() {
     if (import.meta.server) return
     const stored = localStorage.getItem('theme')
     isDark.value = stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)
-    apply()
+    document.documentElement.classList.toggle('dark', isDark.value)
   }
 
   function toggle() {
     isDark.value = !isDark.value
     localStorage.setItem('theme', isDark.value ? 'dark' : 'light')
-    apply()
-  }
-
-  function apply() {
-    if (import.meta.server) return
     document.documentElement.classList.toggle('dark', isDark.value)
   }
 
-  return { isDark: readonly(isDark), toggle, init }
+  return { isDark, toggle, init }
 }

@@ -38,6 +38,17 @@ export default defineNuxtConfig({
     },
   },
 
+  app: {
+    head: {
+      script: [
+        {
+          innerHTML: `(function(){var s=localStorage.getItem('theme');if(s==='dark'||(!s&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark')}})()`,
+          type: 'text/javascript',
+        },
+      ],
+    },
+  },
+
   components: [
     { path: '~/components', pathPrefix: false },
   ],

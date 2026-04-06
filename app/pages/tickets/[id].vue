@@ -103,11 +103,20 @@
         <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 space-y-3">
           <button
             v-if="auth.isAdmin"
-            class="w-full px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors flex items-center justify-center gap-2"
+            class="w-full px-4 py-2 bg-primary-600 text-white rounded-xl text-sm font-semibold hover:bg-primary-700 active:scale-[0.98] transition-all duration-150 flex items-center justify-center gap-2"
             @click="showEdit = true"
           >
             <Pencil class="w-4 h-4" />
             {{ $t('tickets.edit') }}
+          </button>
+          <button
+            v-if="auth.isAdmin"
+            class="w-full px-4 py-2 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-xl text-sm font-semibold hover:bg-red-50 dark:hover:bg-red-950/30 active:scale-[0.98] transition-all duration-150 flex items-center justify-center gap-2"
+            :disabled="saving"
+            @click="showDeleteConfirm = true"
+          >
+            <Trash2 class="w-4 h-4" />
+            {{ $t('common.delete') }}
           </button>
 
           <button
@@ -132,11 +141,22 @@
     </div>
 
     <TicketDetailModal :ticket="showEdit ? ticket : null" :technicians="technicians" @close="showEdit = false" @updated="onUpdated" @deleted="onDeleted" />
+
+    <ConfirmDialog
+      :visible="showDeleteConfirm"
+      :title="$t('tickets.deleteTitle')"
+      :message="$t('tickets.deleteMessage')"
+      :confirm-text="$t('common.delete')"
+      :cancel-text="$t('common.cancel')"
+      variant="danger"
+      @confirm="remove"
+      @cancel="showDeleteConfirm = false"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ArrowLeft, Pencil, Check, X } from 'lucide-vue-next'
+import { ArrowLeft, Pencil, Check, X, Trash2 } from 'lucide-vue-next'
 import type { Ticket, User } from '~/types'
 import { useAuthStore } from '~/stores/auth'
 import { useTicketsStore } from '~/stores/tickets'
@@ -155,6 +175,7 @@ const technicians = ref<User[]>([])
 const loading = ref(true)
 const saving = ref(false)
 const showEdit = ref(false)
+const showDeleteConfirm = ref(false)
 const statusForm = ref('')
 const editing = ref<'name' | 'description' | null>(null)
 const editForm = reactive({ customer_name: '', description: '' })
@@ -225,6 +246,18 @@ async function saveField(field: 'name' | 'description') {
 function onUpdated(updated: Ticket) {
   ticket.value = updated
   showEdit.value = false
+}
+
+async function remove() {
+  if (!ticket.value) return
+  showDeleteConfirm.value = false
+  saving.value = true
+  try {
+    await useTicketsStore().deleteTicket(ticket.value.id)
+    toast.success('Deleted')
+    router.push('/tickets')
+  } catch (e: any) { toast.error(e.data?.statusMessage || 'Failed') }
+  finally { saving.value = false }
 }
 
 function onDeleted() {

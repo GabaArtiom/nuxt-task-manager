@@ -69,12 +69,17 @@ import { useTicketsStore } from '~/stores/tickets'
 definePageMeta({ middleware: 'auth' })
 
 const { t } = useI18n()
+const route = useRoute()
 const auth = useAuthStore()
 const ticketsStore = useTicketsStore()
 const selectedTicket = ref<Ticket | null>(null)
 const technicians = ref<User[]>([])
 const page = ref(1)
-const filters = reactive({ status: '', urgent: '', technician_id: '' })
+const filters = reactive({
+  status: '',
+  urgent: '',
+  technician_id: (route.query.technician_id as string) || '',
+})
 
 const statusOptions = computed(() => [
   { value: '', label: t('tickets.allStatuses') },

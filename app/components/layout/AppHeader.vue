@@ -13,14 +13,16 @@
       </button>
 
       <!-- Theme toggle -->
-      <button
-        class="p-1.5 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-        :title="isDark ? $t('theme.light') : $t('theme.dark')"
-        @click="toggleTheme"
-      >
-        <Sun v-if="isDark" class="w-4 h-4" />
-        <Moon v-else class="w-4 h-4" />
-      </button>
+      <ClientOnly>
+        <button
+          class="p-1.5 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          :title="isDark ? $t('theme.light') : $t('theme.dark')"
+          @click="toggleTheme"
+        >
+          <Sun v-if="isDark" class="w-4 h-4" />
+          <Moon v-else class="w-4 h-4" />
+        </button>
+      </ClientOnly>
 
       <span class="text-sm text-gray-500 dark:text-gray-400 hidden sm:inline">{{ auth.user?.name }} {{ auth.user?.family_name }}</span>
       <span
