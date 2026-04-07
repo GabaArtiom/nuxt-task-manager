@@ -30,8 +30,13 @@ function saveToStorage(notifications: Notification[]) {
 }
 
 export const useNotificationsStore = defineStore('notifications', () => {
-  const notifications = ref<Notification[]>(loadFromStorage())
+  const notifications = ref<Notification[]>([])
   const unreadCount = computed(() => notifications.value.filter(n => !n.read).length)
+
+  // Load from localStorage on client side
+  if (process.client) {
+    notifications.value = loadFromStorage()
+  }
 
   function addNotification(notification: Omit<Notification, 'id' | 'read' | 'createdAt'>) {
     const newNotification: Notification = {
