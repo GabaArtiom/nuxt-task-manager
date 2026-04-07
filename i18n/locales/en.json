@@ -7,6 +7,7 @@
     "dashboard": "Dashboard",
     "tickets": "Tickets",
     "allTickets": "All Tickets",
+    "kanban": "Kanban Board",
     "newTicket": "New Ticket",
     "myTickets": "My Tickets",
     "stats": "Statistics",
@@ -47,6 +48,9 @@
   "tickets": {
     "openTickets": "Open Tickets",
     "openSubtitle": "Unassigned tickets waiting to be picked up",
+    "kanban": "Kanban Board",
+    "kanbanSubtitle": "Drag and drop tickets to change status",
+    "statusUpdated": "Status updated successfully",
     "create": "Create New Ticket",
     "createSubtitle": "Fill in the details for a new support ticket",
     "customerName": "Customer Name",

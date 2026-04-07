@@ -7,6 +7,7 @@
     "dashboard": "Dashboard",
     "tickets": "Ticket",
     "allTickets": "Tutti i Ticket",
+    "kanban": "Kanban Board",
     "newTicket": "Nuovo Ticket",
     "myTickets": "I Miei Ticket",
     "stats": "Statistiche",
@@ -47,6 +48,9 @@
   "tickets": {
     "openTickets": "Ticket Aperti",
     "openSubtitle": "Ticket non assegnati in attesa di essere presi in carico",
+    "kanban": "Kanban Board",
+    "kanbanSubtitle": "Trascina e rilascia i ticket per cambiare stato",
+    "statusUpdated": "Stato aggiornato con successo",
     "create": "Crea Nuovo Ticket",
     "createSubtitle": "Compila i dettagli per un nuovo ticket di supporto",
     "customerName": "Nome Cliente",
