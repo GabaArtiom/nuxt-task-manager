@@ -166,5 +166,10 @@
   "theme": {
     "light": "Chiaro",
     "dark": "Scuro"
+  },
+  "notifications": {
+    "assignedToYou": "Sei stato assegnato a: {customer}",
+    "newTicket": "Nuovo ticket: {customer}",
+    "urgentTicket": "🔴 Ticket urgente: {customer}"
   }
 }

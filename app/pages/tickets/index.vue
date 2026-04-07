@@ -138,6 +138,13 @@
       @confirm="bulkDelete"
       @cancel="showBulkDeleteConfirm = false"
     />
+
+    <ToastNotification
+      :visible="showNotification"
+      :message="notificationMessage"
+      :type="notificationType"
+      @close="closeNotification"
+    />
   </div>
 </template>
 
@@ -285,7 +292,7 @@ onMounted(async () => {
   }
 })
 
-useRealtimeUpdates()
+const { showNotification, notificationMessage, notificationType, closeNotification } = useRealtimeUpdates()
 </script>
 
 <style scoped>

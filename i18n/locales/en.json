@@ -166,5 +166,10 @@
   "theme": {
     "light": "Light",
     "dark": "Dark"
+  },
+  "notifications": {
+    "assignedToYou": "You've been assigned to: {customer}",
+    "newTicket": "New ticket: {customer}",
+    "urgentTicket": "🔴 Urgent ticket: {customer}"
   }
 }
