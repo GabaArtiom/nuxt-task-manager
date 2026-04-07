@@ -102,6 +102,11 @@ const isOpen = ref(false)
 const router = useRouter()
 const buttonRef = ref<HTMLElement | null>(null)
 
+// Ensure notifications are loaded
+onMounted(() => {
+  notificationsStore.init()
+})
+
 const dropdownStyle = computed(() => {
   if (!buttonRef.value) return {}
   const rect = buttonRef.value.getBoundingClientRect()

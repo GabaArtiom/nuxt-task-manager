@@ -32,10 +32,18 @@ function saveToStorage(notifications: Notification[]) {
 export const useNotificationsStore = defineStore('notifications', () => {
   const notifications = ref<Notification[]>([])
   const unreadCount = computed(() => notifications.value.filter(n => !n.read).length)
+  const initialized = ref(false)
 
-  // Load from localStorage on client side
+  function init() {
+    if (!initialized.value && process.client) {
+      notifications.value = loadFromStorage()
+      initialized.value = true
+    }
+  }
+
+  // Auto-init on client
   if (process.client) {
-    notifications.value = loadFromStorage()
+    init()
   }
 
   function addNotification(notification: Omit<Notification, 'id' | 'read' | 'createdAt'>) {
@@ -81,5 +89,6 @@ export const useNotificationsStore = defineStore('notifications', () => {
     markAsRead,
     markAllAsRead,
     clearAll,
+    init,
   }
 })
