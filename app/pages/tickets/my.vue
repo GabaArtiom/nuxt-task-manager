@@ -223,9 +223,18 @@ const selectedTicket = ref<Ticket | null>(null)
 const technicians = ref<User[]>([])
 const page = ref(1)
 const perPage = ref(process.client ? (localStorage.getItem('tickets_per_page') || '10') : '10')
-const viewMode = ref<'list' | 'kanban'>('list')
+const viewMode = ref<'list' | 'kanban'>(
+  process.client ? (localStorage.getItem('my_tickets_view') as 'list' | 'kanban' || 'list') : 'list'
+)
 const draggedTicket = ref<Ticket | null>(null)
 const dragOverTicket = ref<Ticket | null>(null)
+
+// Save view mode to localStorage
+watch(viewMode, (newMode) => {
+  if (process.client) {
+    localStorage.setItem('my_tickets_view', newMode)
+  }
+})
 
 const filters = reactive({
   status: '',

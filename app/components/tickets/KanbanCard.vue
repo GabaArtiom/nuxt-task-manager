@@ -2,7 +2,7 @@
   <div
     draggable="true"
     :data-ticket-id="ticket.id"
-    class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 cursor-move transition-all duration-200"
+    class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 cursor-pointer transition-all duration-200 hover:shadow-lg"
     :class="[
       ticket.is_urgent && ticket.status !== 'done' && ticket.status !== 'canceled' && 'border-l-4 border-l-red-500',
       isMine && !ticket.is_urgent && 'border-l-4 border-l-primary-500',
