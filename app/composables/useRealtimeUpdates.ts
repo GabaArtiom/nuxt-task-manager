@@ -48,6 +48,11 @@ export function useRealtimeUpdates() {
           : t('notifications.newTicket', { customer: data.customer_name })
         notificationType.value = data.is_urgent ? 'urgent_ticket' : 'new_ticket'
         showNotification.value = true
+      } else if (data.assigned_to === auth.user?.id) {
+        // Show notification if created and assigned to me
+        notificationMessage.value = t('notifications.assignedToYou', { customer: data.customer_name })
+        notificationType.value = 'assigned'
+        showNotification.value = true
       }
     } else if (type === 'ticket:updated') {
       const idx = ticketsStore.tickets.findIndex(t => t.id === data.id)
