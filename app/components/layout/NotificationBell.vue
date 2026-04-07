@@ -4,6 +4,7 @@
       @click="isOpen = !isOpen"
       class="relative p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
       :class="{ 'bg-gray-100 dark:bg-gray-800': isOpen }"
+      ref="buttonRef"
     >
       <Bell class="w-5 h-5" />
       <span
@@ -20,7 +21,8 @@
       />
       <div
         v-if="isOpen"
-        class="fixed right-4 top-16 w-80 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-lg z-50 max-h-96 overflow-hidden flex flex-col"
+        :style="dropdownStyle"
+        class="fixed w-80 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-lg z-50 max-h-96 overflow-hidden flex flex-col"
       >
       <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-800">
         <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">
@@ -98,6 +100,16 @@ import { formatDistanceToNow } from 'date-fns'
 const notificationsStore = useNotificationsStore()
 const isOpen = ref(false)
 const router = useRouter()
+const buttonRef = ref<HTMLElement | null>(null)
+
+const dropdownStyle = computed(() => {
+  if (!buttonRef.value) return {}
+  const rect = buttonRef.value.getBoundingClientRect()
+  return {
+    top: `${rect.bottom + 8}px`,
+    right: `${window.innerWidth - rect.right}px`,
+  }
+})
 
 function handleMarkAllAsRead() {
   notificationsStore.markAllAsRead()
