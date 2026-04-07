@@ -40,6 +40,7 @@ export default defineNuxtConfig({
 
   app: {
     head: {
+      title: 'Ticket Manager Challenge',
       script: [
         {
           innerHTML: `(function(){var s=localStorage.getItem('theme');if(s==='dark'||(!s&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark')}})()`,
