@@ -313,8 +313,16 @@ async function onDropOnCard(event: DragEvent, targetTicket: Ticket) {
   const draggedId = draggedTicket.value.id
   const targetId = targetTicket.id
 
-  // Reorder within the same status
-  if (draggedTicket.value.status === targetTicket.status) {
+  // If different status, change status
+  if (draggedTicket.value.status !== targetTicket.status) {
+    try {
+      await ticketsStore.updateTicket(draggedTicket.value.id, { status: targetTicket.status } as any)
+      success(t('tickets.statusUpdated'))
+    } catch (e: any) {
+      error(e.data?.statusMessage || t('common.error'))
+    }
+  } else {
+    // Reorder within the same status
     const tickets = ticketsStore.tickets
     const draggedIndex = tickets.findIndex(t => t.id === draggedId)
     const targetIndex = tickets.findIndex(t => t.id === targetId)
