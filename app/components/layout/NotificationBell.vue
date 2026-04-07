@@ -106,7 +106,7 @@ function handleNotificationClick(notification: any) {
   router.push(`/tickets/${notification.ticketId}`)
 }
 
-function formatTime(date: Date) {
+function formatTime(date: string) {
   return formatDistanceToNow(new Date(date), { addSuffix: true })
 }
 </script>

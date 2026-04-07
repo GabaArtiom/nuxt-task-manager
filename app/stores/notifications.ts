@@ -7,38 +7,66 @@ export interface Notification {
   message: string
   ticketId: string
   read: boolean
-  createdAt: Date
+  createdAt: string
+}
+
+const STORAGE_KEY = 'notifications'
+
+function loadFromStorage(): Notification[] {
+  if (!process.client) return []
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY)
+    return stored ? JSON.parse(stored) : []
+  } catch {
+    return []
+  }
+}
+
+function saveToStorage(notifications: Notification[]) {
+  if (!process.client) return
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(notifications))
+  } catch {}
 }
 
 export const useNotificationsStore = defineStore('notifications', () => {
-  const notifications = ref<Notification[]>([])
+  const notifications = ref<Notification[]>(loadFromStorage())
   const unreadCount = computed(() => notifications.value.filter(n => !n.read).length)
 
   function addNotification(notification: Omit<Notification, 'id' | 'read' | 'createdAt'>) {
-    notifications.value.unshift({
+    const newNotification: Notification = {
       ...notification,
       id: `${Date.now()}-${Math.random()}`,
       read: false,
-      createdAt: new Date(),
-    })
+      createdAt: new Date().toISOString(),
+    }
+
+    notifications.value.unshift(newNotification)
 
     // Keep only last 50 notifications
     if (notifications.value.length > 50) {
       notifications.value = notifications.value.slice(0, 50)
     }
+
+    saveToStorage(notifications.value)
   }
 
   function markAsRead(id: string) {
     const notification = notifications.value.find(n => n.id === id)
-    if (notification) notification.read = true
+    if (notification) {
+      notification.read = true
+      saveToStorage(notifications.value)
+    }
   }
 
   function markAllAsRead() {
     notifications.value.forEach(n => n.read = true)
+    saveToStorage(notifications.value)
   }
 
   function clearAll() {
     notifications.value = []
+    saveToStorage(notifications.value)
   }
 
   return {
