@@ -1,12 +1,16 @@
 <template>
   <div
     draggable="true"
-    class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 cursor-move hover:shadow-md transition-all"
+    :data-ticket-id="ticket.id"
+    class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 cursor-move transition-all duration-200"
     :class="[
       ticket.is_urgent && ticket.status !== 'done' && ticket.status !== 'canceled' && 'border-l-4 border-l-red-500',
       isMine && !ticket.is_urgent && 'border-l-4 border-l-primary-500',
-      isDragOver && 'border-t-4 border-t-primary-500 pt-2',
+      isDragOver && 'scale-105 shadow-xl border-2 border-primary-500 bg-primary-50 dark:bg-primary-950/20',
+      isDragging && 'opacity-40 scale-95',
     ]"
+    @dragstart="$emit('dragstart', $event); isDragging = true"
+    @dragend="isDragging = false"
   >
     <div class="flex items-start justify-between gap-2 mb-2">
       <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100 line-clamp-2">{{ ticket.customer_name }}</h4>
@@ -39,4 +43,9 @@ const props = defineProps<{
 
 const auth = useAuthStore()
 const isMine = computed(() => props.ticket.assigned_to === auth.user?.id)
+const isDragging = ref(false)
+
+defineEmits<{
+  dragstart: [event: DragEvent]
+}>()
 </script>
