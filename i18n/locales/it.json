@@ -88,6 +88,7 @@
     "unassignedOnly": "Solo Non Assegnati",
     "allStatuses": "Tutti gli Stati",
     "clearFilters": "Cancella Filtri",
+    "selectMode": "Modalità Selezione",
     "deleteSelected": "Elimina Selezionati",
     "confirmBulkDelete": "Sei sicuro di voler eliminare {count} ticket? Questa azione non può essere annullata.",
     "bulkDeleteSuccess": "{count} ticket eliminati con successo",

@@ -7,7 +7,23 @@
       </div>
       <div class="flex items-center gap-2">
         <button
-          v-if="auth.isAdmin && selectedTickets.length > 0"
+          v-if="auth.isAdmin && !bulkMode"
+          @click="bulkMode = true"
+          class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+        >
+          <CheckSquare class="w-4 h-4" />
+          {{ $t('tickets.selectMode') }}
+        </button>
+        <button
+          v-if="auth.isAdmin && bulkMode && selectedTickets.length === 0"
+          @click="bulkMode = false; selectedTickets = []"
+          class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+        >
+          <X class="w-4 h-4" />
+          {{ $t('common.cancel') }}
+        </button>
+        <button
+          v-if="auth.isAdmin && bulkMode && selectedTickets.length > 0"
           @click="bulkDelete"
           class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
         >
@@ -66,13 +82,20 @@
       <table class="w-full">
         <thead>
           <tr class="border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
-            <th v-if="auth.isAdmin" class="py-2.5 pl-4 pr-2 w-10">
-              <input
-                type="checkbox"
-                :checked="allSelected"
-                @change="toggleSelectAll"
-                class="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-              />
+            <th v-if="bulkMode" class="py-2.5 pl-4 pr-2 w-10">
+              <label class="flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  :checked="allSelected"
+                  @change="toggleSelectAll"
+                  class="sr-only peer"
+                />
+                <div class="relative w-5 h-5 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 rounded peer-checked:bg-primary-600 peer-checked:border-primary-600 transition-all">
+                  <svg class="absolute inset-0 w-5 h-5 text-white opacity-0 peer-checked:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              </label>
             </th>
             <th class="py-2.5 pl-4 pr-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ $t('tickets.customerName') }}</th>
             <th class="py-2.5 px-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden md:table-cell">{{ $t('tickets.date') }}</th>
@@ -88,7 +111,7 @@
             v-for="ticket in ticketsStore.tickets"
             :key="ticket.id"
             :ticket="ticket"
-            :show-checkbox="auth.isAdmin"
+            :show-checkbox="bulkMode"
             :is-selected="selectedTickets.includes(ticket.id)"
             @edit="selectedTicket = ticket"
             @toggle-select="toggleTicketSelection"
@@ -108,7 +131,7 @@
 </template>
 
 <script setup lang="ts">
-import { Plus, Inbox as InboxIcon, Trash2 } from 'lucide-vue-next'
+import { Plus, Inbox as InboxIcon, Trash2, CheckSquare, X } from 'lucide-vue-next'
 import type { Ticket, User } from '~/types'
 import { useAuthStore } from '~/stores/auth'
 import { useTicketsStore } from '~/stores/tickets'
@@ -127,6 +150,7 @@ const technicians = ref<User[]>([])
 const page = ref(1)
 const perPage = ref(process.client ? (localStorage.getItem('tickets_per_page') || '10') : '10')
 const selectedTickets = ref<string[]>([])
+const bulkMode = ref(false)
 
 // Initialize filters from URL query params
 const filters = reactive({
