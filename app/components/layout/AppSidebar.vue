@@ -7,8 +7,8 @@
   >
     <!-- Logo -->
     <div class="flex items-center gap-3 px-4 h-16 border-b border-gray-800">
-      <div class="flex-shrink-0 w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-        <Ticket class="w-4 h-4 text-white" />
+      <div class="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-700 rounded-lg flex items-center justify-center shadow-lg">
+        <Zap class="w-4 h-4 text-white" />
       </div>
       <span v-if="!collapsed" class="font-heading font-bold text-lg truncate">{{ $t('app.name') }}</span>
     </div>
@@ -89,6 +89,11 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
+  Sparkles,
+  Zap,
+  ListChecks,
+  TrendingUp,
+  UsersRound,
 } from 'lucide-vue-next'
 import { useAuthStore } from '~/stores/auth'
 
@@ -105,14 +110,14 @@ const userInitials = computed(() => {
 
 const navItems = computed(() => {
   const items: { to: string; label: string; icon: any; section?: string; indent?: boolean }[] = [
-    { to: '/', label: t('nav.dashboard'), icon: LayoutDashboard },
-    { to: '/tickets', label: t('nav.allTickets'), icon: Ticket, section: t('nav.tickets') },
-    { to: '/tickets/new', label: t('nav.newTicket'), icon: TicketPlus, indent: true },
+    { to: '/', label: t('nav.dashboard'), icon: Sparkles },
+    { to: '/tickets', label: t('nav.allTickets'), icon: ListChecks, section: t('nav.tickets') },
+    { to: '/tickets/new', label: t('nav.newTicket'), icon: Zap, indent: true },
     { to: '/tickets/my', label: t('nav.myTickets'), icon: ClipboardList, indent: true },
-    { to: '/stats', label: t('nav.stats'), icon: BarChart3 },
+    { to: '/stats', label: t('nav.stats'), icon: TrendingUp },
   ]
   if (auth.isAdmin) {
-    items.push({ to: '/users', label: t('nav.users'), icon: Users })
+    items.push({ to: '/users', label: t('nav.users'), icon: UsersRound })
   }
   return items
 })
