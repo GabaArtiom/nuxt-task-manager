@@ -77,6 +77,17 @@
         </button>
       </div>
     </div>
+
+    <ConfirmDialog
+      :visible="showLogoutConfirm"
+      :title="$t('auth.logout')"
+      :message="$t('auth.logoutConfirm')"
+      :confirm-text="$t('auth.logout')"
+      :cancel-text="$t('common.cancel')"
+      variant="warning"
+      @confirm="confirmLogout"
+      @cancel="showLogoutConfirm = false"
+    />
   </header>
 </template>
 
@@ -90,6 +101,7 @@ const { locale, setLocale, t } = useI18n()
 const { isDark, toggle: toggleTheme } = useTheme()
 const langDropdownOpen = ref(false)
 const langButtonRef = ref<HTMLElement | null>(null)
+const showLogoutConfirm = ref(false)
 
 const langDropdownStyle = computed(() => {
   if (!langButtonRef.value) return {}
@@ -120,8 +132,11 @@ const userInitials = computed(() => {
 })
 
 function handleLogout() {
-  if (confirm(t('auth.logoutConfirm'))) {
-    auth.logout()
-  }
+  showLogoutConfirm.value = true
+}
+
+function confirmLogout() {
+  showLogoutConfirm.value = false
+  auth.logout()
 }
 </script>
