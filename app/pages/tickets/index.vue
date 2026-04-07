@@ -5,13 +5,23 @@
         <h2 class="text-2xl font-heading font-bold text-gray-900 dark:text-gray-100">{{ $t('tickets.openTickets') }}</h2>
         <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ $t('tickets.openSubtitle') }}</p>
       </div>
-      <NuxtLink
-        to="/tickets/new"
-        class="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors"
-      >
-        <Plus class="w-4 h-4" />
-        {{ $t('nav.newTicket') }}
-      </NuxtLink>
+      <div class="flex items-center gap-2">
+        <button
+          v-if="auth.isAdmin && selectedTickets.length > 0"
+          @click="bulkDelete"
+          class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
+        >
+          <Trash2 class="w-4 h-4" />
+          {{ $t('tickets.deleteSelected') }} ({{ selectedTickets.length }})
+        </button>
+        <NuxtLink
+          to="/tickets/new"
+          class="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors"
+        >
+          <Plus class="w-4 h-4" />
+          {{ $t('nav.newTicket') }}
+        </NuxtLink>
+      </div>
     </div>
 
     <!-- Filters -->
@@ -56,6 +66,14 @@
       <table class="w-full">
         <thead>
           <tr class="border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
+            <th v-if="auth.isAdmin" class="py-2.5 pl-4 pr-2 w-10">
+              <input
+                type="checkbox"
+                :checked="allSelected"
+                @change="toggleSelectAll"
+                class="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+              />
+            </th>
             <th class="py-2.5 pl-4 pr-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ $t('tickets.customerName') }}</th>
             <th class="py-2.5 px-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden md:table-cell">{{ $t('tickets.date') }}</th>
             <th class="py-2.5 px-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden lg:table-cell">{{ $t('tickets.assignedTo') }}</th>
@@ -66,7 +84,15 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-100 dark:divide-gray-800/50">
-          <TicketRow v-for="ticket in ticketsStore.tickets" :key="ticket.id" :ticket="ticket" @edit="selectedTicket = ticket" />
+          <TicketRow
+            v-for="ticket in ticketsStore.tickets"
+            :key="ticket.id"
+            :ticket="ticket"
+            :show-checkbox="auth.isAdmin"
+            :is-selected="selectedTickets.includes(ticket.id)"
+            @edit="selectedTicket = ticket"
+            @toggle-select="toggleTicketSelection"
+          />
         </tbody>
       </table>
     </div>
@@ -82,22 +108,25 @@
 </template>
 
 <script setup lang="ts">
-import { Plus, Inbox as InboxIcon } from 'lucide-vue-next'
+import { Plus, Inbox as InboxIcon, Trash2 } from 'lucide-vue-next'
 import type { Ticket, User } from '~/types'
 import { useAuthStore } from '~/stores/auth'
 import { useTicketsStore } from '~/stores/tickets'
+import { useToast } from '~/composables/useToast'
 
 definePageMeta({ middleware: 'auth' })
 
 const { t } = useI18n()
 const auth = useAuthStore()
 const ticketsStore = useTicketsStore()
+const { success, error } = useToast()
 const route = useRoute()
 const router = useRouter()
 const selectedTicket = ref<Ticket | null>(null)
 const technicians = ref<User[]>([])
 const page = ref(1)
 const perPage = ref(process.client ? (localStorage.getItem('tickets_per_page') || '10') : '10')
+const selectedTickets = ref<string[]>([])
 
 // Initialize filters from URL query params
 const filters = reactive({
@@ -175,6 +204,42 @@ async function fetchTickets() {
   if (filters.type) params.type = filters.type
   if (filters.urgent) params.urgent = filters.urgent
   await ticketsStore.fetchTickets(params)
+  selectedTickets.value = []
+}
+
+const allSelected = computed(() => {
+  return ticketsStore.tickets.length > 0 && selectedTickets.value.length === ticketsStore.tickets.length
+})
+
+function toggleSelectAll() {
+  if (allSelected.value) {
+    selectedTickets.value = []
+  } else {
+    selectedTickets.value = ticketsStore.tickets.map(t => t.id)
+  }
+}
+
+function toggleTicketSelection(id: string) {
+  const idx = selectedTickets.value.indexOf(id)
+  if (idx > -1) {
+    selectedTickets.value.splice(idx, 1)
+  } else {
+    selectedTickets.value.push(id)
+  }
+}
+
+async function bulkDelete() {
+  if (!confirm(t('tickets.confirmBulkDelete', { count: selectedTickets.value.length }))) return
+
+  try {
+    await Promise.all(
+      selectedTickets.value.map(id => $fetch(`/api/tickets/${id}`, { method: 'DELETE' }))
+    )
+    success(t('tickets.bulkDeleteSuccess', { count: selectedTickets.value.length }))
+    await fetchTickets()
+  } catch (err) {
+    error(t('common.error'))
+  }
 }
 
 onMounted(async () => {

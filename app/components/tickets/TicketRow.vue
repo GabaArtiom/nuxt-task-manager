@@ -8,10 +8,19 @@
       !ticket.is_urgent && 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
       ticket.is_urgent && 'hover:bg-red-50 dark:hover:bg-red-950/40',
     ]"
-    @click="navigateTo(`/tickets/${ticket.id}`)"
   >
+    <!-- Checkbox (admin only) -->
+    <td v-if="showCheckbox" class="py-3 pl-4 pr-2" @click.stop>
+      <input
+        type="checkbox"
+        :checked="isSelected"
+        @change="$emit('toggle-select', ticket.id)"
+        class="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+      />
+    </td>
+
     <!-- Color indicator + Customer -->
-    <td class="py-3 pl-4 pr-3">
+    <td class="py-3 pl-4 pr-3" @click="navigateTo(`/tickets/${ticket.id}`)">
       <div class="flex items-center gap-3">
         <div :class="['w-1 h-8 rounded-full flex-shrink-0', colorBar]" />
         <div class="min-w-0">
@@ -73,8 +82,17 @@ import type { Ticket, TicketStatus } from '~/types'
 import { useAuthStore } from '~/stores/auth'
 import { format } from 'date-fns'
 
-const props = defineProps<{ ticket: Ticket }>()
-defineEmits<{ click: [ticket: Ticket]; edit: [ticket: Ticket] }>()
+const props = defineProps<{
+  ticket: Ticket
+  showCheckbox?: boolean
+  isSelected?: boolean
+}>()
+
+defineEmits<{
+  click: [ticket: Ticket]
+  edit: [ticket: Ticket]
+  'toggle-select': [id: string]
+}>()
 
 const auth = useAuthStore()
 const isMine = computed(() => props.ticket.assigned_to === auth.user?.id)
