@@ -5,6 +5,7 @@ export function useRealtimeUpdates() {
   const ticketsStore = useTicketsStore()
   const auth = useAuthStore()
   const { t } = useI18n()
+  const route = useRoute()
 
   const showNotification = ref(false)
   const notificationMessage = ref('')
@@ -37,23 +38,28 @@ export function useRealtimeUpdates() {
 
   function handleEvent(type: string, data: any) {
     if (type === 'ticket:created') {
-      // Only refetch if ticket is relevant to current user
       const isAssignedToMe = data.assigned_to === auth.user?.id
       const isUnassigned = !data.assigned_to
+      const isOnAllTicketsPage = route.path === '/tickets' || route.path === '/'
+      const isOnMyTicketsPage = route.path === '/tickets/my'
 
-      if (isAssignedToMe || (isUnassigned && auth.isAdmin)) {
+      // Refetch logic based on page and ticket state
+      if (isOnAllTicketsPage && (isUnassigned || isAssignedToMe)) {
+        // On "All Tickets" page: refetch for unassigned or assigned to me
+        ticketsStore.fetchTickets(ticketsStore.lastParams)
+      } else if (isOnMyTicketsPage && isAssignedToMe) {
+        // On "My Tickets" page: only refetch if assigned to me
         ticketsStore.fetchTickets(ticketsStore.lastParams)
       }
 
+      // Show notifications
       if (isUnassigned) {
-        // Show notification for new unassigned ticket
         notificationMessage.value = data.is_urgent
           ? t('notifications.urgentTicket', { customer: data.customer_name })
           : t('notifications.newTicket', { customer: data.customer_name })
         notificationType.value = data.is_urgent ? 'urgent_ticket' : 'new_ticket'
         showNotification.value = true
       } else if (isAssignedToMe) {
-        // Show notification if created and assigned to me
         notificationMessage.value = t('notifications.assignedToYou', { customer: data.customer_name })
         notificationType.value = 'assigned'
         showNotification.value = true
