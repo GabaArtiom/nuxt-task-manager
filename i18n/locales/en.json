@@ -166,14 +166,5 @@
   "theme": {
     "light": "Light",
     "dark": "Dark"
-  },
-  "notifications": {
-    "title": "Notifications",
-    "empty": "No notifications",
-    "markAllRead": "Mark all as read",
-    "clearAll": "Clear all",
-    "assignedToYou": "You've been assigned to: {customer}",
-    "newTicket": "New ticket: {customer}",
-    "urgentTicket": "🔴 Urgent ticket: {customer}"
   }
 }

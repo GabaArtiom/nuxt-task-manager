@@ -12,9 +12,6 @@
         {{ locale === 'en' ? 'IT' : 'EN' }}
       </button>
 
-      <!-- Notifications -->
-      <NotificationBell />
-
       <!-- Theme toggle -->
       <ClientOnly>
         <button
