@@ -24,7 +24,7 @@
         </button>
         <button
           v-if="auth.isAdmin && bulkMode && selectedTickets.length > 0"
-          @click="bulkDelete"
+          @click="showBulkDeleteConfirm = true"
           class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
         >
           <Trash2 class="w-4 h-4" />
@@ -127,6 +127,17 @@
     </div>
 
     <TicketDetailModal :ticket="selectedTicket" :technicians="technicians" @close="selectedTicket = null" @updated="fetchTickets" @deleted="fetchTickets" />
+
+    <ConfirmDialog
+      :visible="showBulkDeleteConfirm"
+      :title="$t('tickets.deleteTitle')"
+      :message="$t('tickets.confirmBulkDelete', { count: selectedTickets.length })"
+      :confirm-text="$t('common.delete')"
+      :cancel-text="$t('common.cancel')"
+      variant="danger"
+      @confirm="bulkDelete"
+      @cancel="showBulkDeleteConfirm = false"
+    />
   </div>
 </template>
 
@@ -151,6 +162,7 @@ const page = ref(1)
 const perPage = ref(process.client ? (localStorage.getItem('tickets_per_page') || '10') : '10')
 const selectedTickets = ref<string[]>([])
 const bulkMode = ref(false)
+const showBulkDeleteConfirm = ref(false)
 
 // Initialize filters from URL query params
 const filters = reactive({
@@ -253,7 +265,7 @@ function toggleTicketSelection(id: string) {
 }
 
 async function bulkDelete() {
-  if (!confirm(t('tickets.confirmBulkDelete', { count: selectedTickets.value.length }))) return
+  showBulkDeleteConfirm.value = false
 
   try {
     await Promise.all(

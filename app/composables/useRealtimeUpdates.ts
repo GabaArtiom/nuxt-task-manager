@@ -8,6 +8,7 @@ export function useRealtimeUpdates() {
   const notificationsStore = useNotificationsStore()
   const { info } = useToast()
   const auth = useAuthStore()
+  const { t } = useI18n()
   let es: EventSource | null = null
 
   function connect() {
@@ -43,10 +44,9 @@ export function useRealtimeUpdates() {
         // Notify about new unassigned ticket
         if (!data.assigned_to) {
           const message = data.is_urgent
-            ? `🔴 Urgent ticket: ${data.customer_name}`
-            : `New ticket: ${data.customer_name}`
+            ? t('notifications.urgentTicket', { customer: data.customer_name })
+            : t('notifications.newTicket', { customer: data.customer_name })
 
-          info(message)
           notificationsStore.addNotification({
             type: data.is_urgent ? 'urgent_ticket' : 'new_ticket',
             message,
@@ -68,8 +68,7 @@ export function useRealtimeUpdates() {
       if (!isOwnAction && data.assigned_to === auth.user?.id) {
         const wasAssignedToMe = oldTicket?.assigned_to === auth.user?.id
         if (!wasAssignedToMe) {
-          const message = `You've been assigned to: ${data.customer_name}`
-          info(message)
+          const message = t('notifications.assignedToYou', { customer: data.customer_name })
           notificationsStore.addNotification({
             type: 'assigned',
             message,

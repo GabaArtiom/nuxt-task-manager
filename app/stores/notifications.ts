@@ -10,27 +10,32 @@ export interface Notification {
   createdAt: string
 }
 
-const STORAGE_KEY = 'notifications'
+const COOKIE_KEY = 'notifications'
 
-function loadFromStorage(): Notification[] {
+function loadFromCookie(): Notification[] {
   if (!process.client) return []
   try {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    return stored ? JSON.parse(stored) : []
+    const cookie = document.cookie.split('; ').find(row => row.startsWith(COOKIE_KEY + '='))
+    if (!cookie) return []
+    const value = decodeURIComponent(cookie.split('=')[1])
+    return JSON.parse(value)
   } catch {
     return []
   }
 }
 
-function saveToStorage(notifications: Notification[]) {
+function saveToCookie(notifications: Notification[]) {
   if (!process.client) return
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(notifications))
+    const value = encodeURIComponent(JSON.stringify(notifications))
+    // Set cookie for 30 days
+    const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toUTCString()
+    document.cookie = `${COOKIE_KEY}=${value}; expires=${expires}; path=/; SameSite=Lax`
   } catch {}
 }
 
 export const useNotificationsStore = defineStore('notifications', () => {
-  const notifications = ref<Notification[]>(loadFromStorage())
+  const notifications = ref<Notification[]>(loadFromCookie())
   const unreadCount = computed(() => notifications.value.filter(n => !n.read).length)
 
   function addNotification(notification: Omit<Notification, 'id' | 'read' | 'createdAt'>) {
@@ -48,25 +53,25 @@ export const useNotificationsStore = defineStore('notifications', () => {
       notifications.value = notifications.value.slice(0, 50)
     }
 
-    saveToStorage(notifications.value)
+    saveToCookie(notifications.value)
   }
 
   function markAsRead(id: string) {
     const notification = notifications.value.find(n => n.id === id)
     if (notification) {
       notification.read = true
-      saveToStorage(notifications.value)
+      saveToCookie(notifications.value)
     }
   }
 
   function markAllAsRead() {
     notifications.value.forEach(n => n.read = true)
-    saveToStorage(notifications.value)
+    saveToCookie(notifications.value)
   }
 
   function clearAll() {
     notifications.value = []
-    saveToStorage(notifications.value)
+    saveToCookie(notifications.value)
   }
 
   return {

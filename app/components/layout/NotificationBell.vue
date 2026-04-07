@@ -18,20 +18,18 @@
         class="fixed inset-0 z-40"
         @click="isOpen = false"
       />
-    </Teleport>
-
-    <div
-      v-if="isOpen"
-      class="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-lg z-50 max-h-96 overflow-hidden flex flex-col"
-    >
+      <div
+        v-if="isOpen"
+        class="fixed right-4 top-16 w-80 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-lg z-50 max-h-96 overflow-hidden flex flex-col"
+      >
       <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-800">
         <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">
           {{ $t('notifications.title') }}
         </h3>
         <button
           v-if="notificationsStore.notifications.length > 0"
-          @click.stop="notificationsStore.markAllAsRead()"
-          class="text-xs text-primary-600 hover:text-primary-700"
+          @click.stop="handleMarkAllAsRead"
+          class="text-xs text-primary-600 hover:text-primary-700 dark:hover:text-primary-500 transition-colors"
         >
           {{ $t('notifications.markAllRead') }}
         </button>
@@ -88,6 +86,7 @@
         </button>
       </div>
     </div>
+    </Teleport>
   </div>
 </template>
 
@@ -99,6 +98,10 @@ import { formatDistanceToNow } from 'date-fns'
 const notificationsStore = useNotificationsStore()
 const isOpen = ref(false)
 const router = useRouter()
+
+function handleMarkAllAsRead() {
+  notificationsStore.markAllAsRead()
+}
 
 function handleNotificationClick(notification: any) {
   notificationsStore.markAsRead(notification.id)
