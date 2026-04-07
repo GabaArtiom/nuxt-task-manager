@@ -162,5 +162,11 @@
   "theme": {
     "light": "Chiaro",
     "dark": "Scuro"
+  },
+  "notifications": {
+    "title": "Notifiche",
+    "empty": "Nessuna notifica",
+    "markAllRead": "Segna tutte come lette",
+    "clearAll": "Cancella tutto"
   }
 }

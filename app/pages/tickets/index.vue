@@ -101,7 +101,7 @@ const perPage = ref(process.client ? (localStorage.getItem('tickets_per_page') |
 
 // Initialize filters from URL query params
 const filters = reactive({
-  view: (route.query.view as string) || (auth.isAdmin ? 'all' : 'unassigned'),
+  view: (route.query.view as string) || 'all',
   status: (route.query.status as string) || '',
   type: (route.query.type as string) || '',
   urgent: (route.query.urgent as string) || '',
@@ -134,12 +134,11 @@ const perPageOptions = [
 ]
 
 const hasActiveFilters = computed(() => {
-  const defaultView = auth.isAdmin ? 'all' : 'unassigned'
-  return filters.view !== defaultView || filters.status !== '' || filters.type !== '' || filters.urgent !== ''
+  return filters.view !== 'all' || filters.status !== '' || filters.type !== '' || filters.urgent !== ''
 })
 
 function clearFilters() {
-  filters.view = auth.isAdmin ? 'all' : 'unassigned'
+  filters.view = 'all'
   filters.status = ''
   filters.type = ''
   filters.urgent = ''
@@ -159,7 +158,7 @@ watch([filters, perPage], () => {
 
 function updateURLParams() {
   const query: Record<string, string> = {}
-  if (filters.view !== (auth.isAdmin ? 'all' : 'unassigned')) query.view = filters.view
+  if (filters.view !== 'all') query.view = filters.view
   if (filters.status) query.status = filters.status
   if (filters.type) query.type = filters.type
   if (filters.urgent) query.urgent = filters.urgent
@@ -168,7 +167,7 @@ function updateURLParams() {
 
 async function fetchTickets() {
   const params: Record<string, string> = { page: String(page.value), limit: String(perPage.value) }
-  if (filters.view === 'unassigned' || !auth.isAdmin) {
+  if (filters.view === 'unassigned') {
     params.unassigned = 'true'
     if (!filters.status) params.status = 'to_be_worked'
   }

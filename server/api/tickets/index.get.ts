@@ -12,6 +12,14 @@ export default defineEventHandler(async (event) => {
     where.assigned_to = null
   }
 
+  // Technicians see: unassigned tickets OR tickets assigned to them
+  if (user.role === 'technician' && query.unassigned !== 'true' && query.my !== 'true') {
+    where.OR = [
+      { assigned_to: null },
+      { assigned_to: user.id }
+    ]
+  }
+
   // Filter: assigned to current user (my tickets)
   if (query.my === 'true') {
     if (query.technician_id) {

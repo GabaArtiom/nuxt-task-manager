@@ -162,5 +162,11 @@
   "theme": {
     "light": "Light",
     "dark": "Dark"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No notifications",
+    "markAllRead": "Mark all as read",
+    "clearAll": "Clear all"
   }
 }
