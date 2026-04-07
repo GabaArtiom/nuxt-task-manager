@@ -11,15 +11,15 @@
   >
     <!-- Checkbox (bulk mode only) -->
     <td v-if="showCheckbox" class="py-3 pl-4 pr-2" @click.stop>
-      <label class="flex items-center cursor-pointer">
+      <label class="flex items-center cursor-pointer group">
         <input
           type="checkbox"
           :checked="isSelected"
           @change="$emit('toggle-select', ticket.id)"
           class="sr-only peer"
         />
-        <div class="relative w-5 h-5 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 rounded peer-checked:bg-primary-600 peer-checked:border-primary-600 transition-all">
-          <svg class="absolute inset-0 w-5 h-5 text-white opacity-0 peer-checked:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="relative w-5 h-5 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 rounded peer-checked:bg-primary-600 peer-checked:border-primary-600 transition-all group-hover:border-primary-500">
+          <svg class="absolute inset-0 w-5 h-5 text-white opacity-0 peer-checked:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
           </svg>
         </div>
