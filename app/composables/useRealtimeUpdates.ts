@@ -36,12 +36,12 @@ export function useRealtimeUpdates() {
   }
 
   function handleEvent(type: string, data: any) {
-    const isOwnAction = data?.created_by === auth.user?.id
+    console.log('SSE event:', type, data)
 
     if (type === 'ticket:created') {
       ticketsStore.fetchTickets(ticketsStore.lastParams)
 
-      if (!isOwnAction && !data.assigned_to) {
+      if (!data.assigned_to) {
         // Show notification for new unassigned ticket
         notificationMessage.value = data.is_urgent
           ? t('notifications.urgentTicket', { customer: data.customer_name })
@@ -60,8 +60,9 @@ export function useRealtimeUpdates() {
       }
 
       // Show notification if assigned to me
-      if (!isOwnAction && data.assigned_to === auth.user?.id) {
+      if (data.assigned_to === auth.user?.id) {
         const wasAssignedToMe = oldTicket?.assigned_to === auth.user?.id
+        console.log('Assignment check:', { wasAssignedToMe, currentUser: auth.user?.id, assignedTo: data.assigned_to })
         if (!wasAssignedToMe) {
           notificationMessage.value = t('notifications.assignedToYou', { customer: data.customer_name })
           notificationType.value = 'assigned'
