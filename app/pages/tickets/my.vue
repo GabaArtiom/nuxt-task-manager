@@ -1,14 +1,36 @@
 <template>
   <div>
-    <div class="mb-6">
-      <h2 class="text-2xl font-heading font-bold text-gray-900 dark:text-gray-100">{{ $t('tickets.myTickets') }}</h2>
-      <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-        {{ auth.isAdmin ? $t('tickets.mySubtitleAdmin') : $t('tickets.mySubtitleTech') }}
-      </p>
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h2 class="text-2xl font-heading font-bold text-gray-900 dark:text-gray-100">{{ $t('tickets.myTickets') }}</h2>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          {{ auth.isAdmin ? $t('tickets.mySubtitleAdmin') : $t('tickets.mySubtitleTech') }}
+        </p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button
+          @click="viewMode = 'list'"
+          :class="[
+            'px-3 py-2 text-sm font-medium rounded-lg transition-colors',
+            viewMode === 'list' ? 'bg-primary-600 text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+          ]"
+        >
+          List
+        </button>
+        <button
+          @click="viewMode = 'kanban'"
+          :class="[
+            'px-3 py-2 text-sm font-medium rounded-lg transition-colors',
+            viewMode === 'kanban' ? 'bg-primary-600 text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+          ]"
+        >
+          Kanban
+        </button>
+      </div>
     </div>
 
     <div class="flex flex-wrap items-center gap-2 mb-4">
-      <div class="w-40">
+      <div v-if="viewMode === 'list'" class="w-40">
         <CustomSelect v-model="filters.status" :options="statusOptions" />
       </div>
       <div class="w-40">
@@ -17,7 +39,7 @@
       <div v-if="auth.isAdmin" class="w-48">
         <CustomSelect v-model="filters.technician_id" :options="techOptions" />
       </div>
-      <div class="w-24">
+      <div v-if="viewMode === 'list'" class="w-24">
         <CustomSelect v-model="perPage" :options="perPageOptions" />
       </div>
     </div>
@@ -34,7 +56,8 @@
       </NuxtLink>
     </div>
 
-    <div v-else class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden">
+    <!-- List View -->
+    <div v-else-if="viewMode === 'list'" class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden">
       <table class="w-full">
         <thead>
           <tr class="border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
@@ -53,7 +76,110 @@
       </table>
     </div>
 
-    <div v-if="ticketsStore.pagination && ticketsStore.pagination.totalPages > 1" class="flex items-center justify-center gap-2 mt-6">
+    <!-- Kanban View -->
+    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- To Be Worked Column -->
+      <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden">
+        <div class="bg-amber-50 dark:bg-amber-950/20 px-4 py-3 border-b border-amber-200 dark:border-amber-800">
+          <h3 class="text-sm font-semibold text-amber-900 dark:text-amber-100 flex items-center gap-2">
+            <div class="w-2 h-2 rounded-full bg-amber-500"></div>
+            {{ $t('tickets.statusToBeWorked') }}
+            <span class="text-xs text-amber-600 dark:text-amber-400">({{ getTicketsByStatus('to_be_worked').length }})</span>
+          </h3>
+        </div>
+        <div
+          class="p-3 space-y-3 min-h-[200px]"
+          @drop="onDrop($event, 'to_be_worked')"
+          @dragover.prevent
+          @dragenter.prevent
+        >
+          <KanbanCard
+            v-for="ticket in getTicketsByStatus('to_be_worked')"
+            :key="ticket.id"
+            :ticket="ticket"
+            @dragstart="onDragStart($event, ticket)"
+            @click="navigateTo(`/tickets/${ticket.id}`)"
+          />
+        </div>
+      </div>
+
+      <!-- In Progress Column -->
+      <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden">
+        <div class="bg-blue-50 dark:bg-blue-950/20 px-4 py-3 border-b border-blue-200 dark:border-blue-800">
+          <h3 class="text-sm font-semibold text-blue-900 dark:text-blue-100 flex items-center gap-2">
+            <div class="w-2 h-2 rounded-full bg-blue-600"></div>
+            {{ $t('tickets.statusInProgress') }}
+            <span class="text-xs text-blue-600 dark:text-blue-400">({{ getTicketsByStatus('in_progress').length }})</span>
+          </h3>
+        </div>
+        <div
+          class="p-3 space-y-3 min-h-[200px]"
+          @drop="onDrop($event, 'in_progress')"
+          @dragover.prevent
+          @dragenter.prevent
+        >
+          <KanbanCard
+            v-for="ticket in getTicketsByStatus('in_progress')"
+            :key="ticket.id"
+            :ticket="ticket"
+            @dragstart="onDragStart($event, ticket)"
+            @click="navigateTo(`/tickets/${ticket.id}`)"
+          />
+        </div>
+      </div>
+
+      <!-- Done Column -->
+      <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden">
+        <div class="bg-green-50 dark:bg-green-950/20 px-4 py-3 border-b border-green-200 dark:border-green-800">
+          <h3 class="text-sm font-semibold text-green-900 dark:text-green-100 flex items-center gap-2">
+            <div class="w-2 h-2 rounded-full bg-green-600"></div>
+            {{ $t('tickets.statusDone') }}
+            <span class="text-xs text-green-600 dark:text-green-400">({{ getTicketsByStatus('done').length }})</span>
+          </h3>
+        </div>
+        <div
+          class="p-3 space-y-3 min-h-[200px]"
+          @drop="onDrop($event, 'done')"
+          @dragover.prevent
+          @dragenter.prevent
+        >
+          <KanbanCard
+            v-for="ticket in getTicketsByStatus('done')"
+            :key="ticket.id"
+            :ticket="ticket"
+            @dragstart="onDragStart($event, ticket)"
+            @click="navigateTo(`/tickets/${ticket.id}`)"
+          />
+        </div>
+      </div>
+
+      <!-- Canceled Column -->
+      <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden">
+        <div class="bg-gray-50 dark:bg-gray-800/50 px-4 py-3 border-b border-gray-200 dark:border-gray-800">
+          <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+            <div class="w-2 h-2 rounded-full bg-gray-400"></div>
+            {{ $t('tickets.statusCanceled') }}
+            <span class="text-xs text-gray-600 dark:text-gray-400">({{ getTicketsByStatus('canceled').length }})</span>
+          </h3>
+        </div>
+        <div
+          class="p-3 space-y-3 min-h-[200px]"
+          @drop="onDrop($event, 'canceled')"
+          @dragover.prevent
+          @dragenter.prevent
+        >
+          <KanbanCard
+            v-for="ticket in getTicketsByStatus('canceled')"
+            :key="ticket.id"
+            :ticket="ticket"
+            @dragstart="onDragStart($event, ticket)"
+            @click="navigateTo(`/tickets/${ticket.id}`)"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div v-if="viewMode === 'list' && ticketsStore.pagination && ticketsStore.pagination.totalPages > 1" class="flex items-center justify-center gap-2 mt-6">
       <button class="btn-page" :disabled="page <= 1" @click="page--; fetchTickets()">{{ $t('tickets.previous') }}</button>
       <span class="text-sm text-gray-600 dark:text-gray-400">{{ $t('tickets.page') }} {{ page }} {{ $t('tickets.of') }} {{ ticketsStore.pagination.totalPages }}</span>
       <button class="btn-page" :disabled="page >= ticketsStore.pagination.totalPages" @click="page++; fetchTickets()">{{ $t('tickets.next') }}</button>
@@ -65,9 +191,10 @@
 
 <script setup lang="ts">
 import { ClipboardList } from 'lucide-vue-next'
-import type { Ticket, User } from '~/types'
+import type { Ticket, User, TicketStatus } from '~/types'
 import { useAuthStore } from '~/stores/auth'
 import { useTicketsStore } from '~/stores/tickets'
+import { useToast } from '~/composables/useToast'
 
 definePageMeta({ middleware: 'auth' })
 
@@ -75,10 +202,14 @@ const { t } = useI18n()
 const route = useRoute()
 const auth = useAuthStore()
 const ticketsStore = useTicketsStore()
+const { success, error } = useToast()
 const selectedTicket = ref<Ticket | null>(null)
 const technicians = ref<User[]>([])
 const page = ref(1)
 const perPage = ref(process.client ? (localStorage.getItem('tickets_per_page') || '10') : '10')
+const viewMode = ref<'list' | 'kanban'>('list')
+const draggedTicket = ref<Ticket | null>(null)
+
 const filters = reactive({
   status: '',
   urgent: '',
@@ -114,13 +245,58 @@ watch([filters, perPage], () => {
 })
 
 async function fetchTickets() {
-  const params: Record<string, string> = { my: 'true', page: String(page.value), limit: String(perPage.value) }
+  const params: Record<string, string> = { my: 'true' }
+
+  if (viewMode.value === 'list') {
+    params.page = String(page.value)
+    params.limit = String(perPage.value)
+  } else {
+    params.limit = '1000'
+  }
+
   if (filters.status) params.status = filters.status
   else if (!auth.isAdmin) params.active = 'true'
   if (filters.urgent) params.urgent = filters.urgent
   if (filters.technician_id) params.technician_id = filters.technician_id
   await ticketsStore.fetchTickets(params)
 }
+
+function getTicketsByStatus(status: TicketStatus) {
+  return ticketsStore.tickets.filter(t => t.status === status)
+}
+
+function onDragStart(event: DragEvent, ticket: Ticket) {
+  draggedTicket.value = ticket
+  if (event.dataTransfer) {
+    event.dataTransfer.effectAllowed = 'move'
+  }
+}
+
+async function onDrop(event: DragEvent, newStatus: TicketStatus) {
+  event.preventDefault()
+
+  if (!draggedTicket.value) return
+
+  const ticket = draggedTicket.value
+
+  if (ticket.status === newStatus) {
+    draggedTicket.value = null
+    return
+  }
+
+  try {
+    await ticketsStore.updateTicket(ticket.id, { status: newStatus } as any)
+    success(t('tickets.statusUpdated'))
+  } catch (e: any) {
+    error(e.data?.statusMessage || t('common.error'))
+  } finally {
+    draggedTicket.value = null
+  }
+}
+
+watch(viewMode, () => {
+  fetchTickets()
+})
 
 onMounted(async () => {
   await fetchTickets()

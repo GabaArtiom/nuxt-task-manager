@@ -89,7 +89,6 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
-  Columns3,
 } from 'lucide-vue-next'
 import { useAuthStore } from '~/stores/auth'
 
@@ -108,7 +107,6 @@ const navItems = computed(() => {
   const items: { to: string; label: string; icon: any; section?: string; indent?: boolean }[] = [
     { to: '/', label: t('nav.dashboard'), icon: LayoutDashboard },
     { to: '/tickets', label: t('nav.allTickets'), icon: Ticket, section: t('nav.tickets') },
-    { to: '/tickets/kanban', label: t('nav.kanban'), icon: Columns3, indent: true },
     { to: '/tickets/new', label: t('nav.newTicket'), icon: TicketPlus, indent: true },
     { to: '/tickets/my', label: t('nav.myTickets'), icon: ClipboardList, indent: true },
     { to: '/stats', label: t('nav.stats'), icon: BarChart3 },

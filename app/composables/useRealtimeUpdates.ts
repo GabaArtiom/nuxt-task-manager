@@ -36,8 +36,6 @@ export function useRealtimeUpdates() {
   }
 
   function handleEvent(type: string, data: any) {
-    console.log('SSE event:', type, data)
-
     if (type === 'ticket:created') {
       ticketsStore.fetchTickets(ticketsStore.lastParams)
 
@@ -61,7 +59,6 @@ export function useRealtimeUpdates() {
       // Show notification if assigned to me (check before updating the list)
       if (data.assigned_to === auth.user?.id) {
         const wasAssignedToMe = oldTicket?.assigned_to === auth.user?.id
-        console.log('Assignment check:', { wasAssignedToMe, currentUser: auth.user?.id, assignedTo: data.assigned_to, oldTicket })
         if (!wasAssignedToMe) {
           notificationMessage.value = t('notifications.assignedToYou', { customer: data.customer_name })
           notificationType.value = 'assigned'
