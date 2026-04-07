@@ -59,15 +59,23 @@
         </button>
       </ClientOnly>
 
-      <span class="text-sm text-gray-500 dark:text-gray-400 hidden sm:inline">{{ auth.user?.name }} {{ auth.user?.family_name }}</span>
-      <span
-        :class="[
-          'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
-          auth.isAdmin ? 'bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-200' : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200',
-        ]"
-      >
-        {{ auth.user?.role }}
-      </span>
+      <!-- User info -->
+      <div class="flex items-center gap-3 pl-3 border-l border-gray-200 dark:border-gray-800">
+        <div class="hidden sm:block text-right">
+          <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ auth.user?.name }} {{ auth.user?.family_name }}</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400">{{ auth.user?.role }}</p>
+        </div>
+        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-sm font-bold text-white shadow-lg">
+          {{ userInitials }}
+        </div>
+        <button
+          class="p-1.5 rounded-lg text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          :title="$t('auth.logout')"
+          @click="auth.logout()"
+        >
+          <LogOut class="w-4 h-4" />
+        </button>
+      </div>
     </div>
   </header>
 </template>

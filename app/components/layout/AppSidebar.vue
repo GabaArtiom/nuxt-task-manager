@@ -40,29 +40,9 @@
       </template>
     </nav>
 
-    <!-- User info + logout -->
+    <!-- Footer with credits -->
     <div class="border-t border-gray-800 p-3">
-      <div class="flex items-center justify-between gap-3 mb-3">
-        <div class="flex items-center gap-3 flex-1 min-w-0">
-          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-sm font-bold flex-shrink-0 shadow-lg">
-            {{ userInitials }}
-          </div>
-          <div v-if="!collapsed" class="flex-1 min-w-0">
-            <p class="text-sm font-medium truncate text-white">{{ auth.user?.name }} {{ auth.user?.family_name }}</p>
-            <p class="text-xs text-gray-400 truncate">{{ auth.user?.role }}</p>
-          </div>
-        </div>
-        <button
-          v-if="!collapsed"
-          class="text-gray-400 hover:text-white transition-colors p-1.5 hover:bg-gray-800 rounded-lg"
-          :title="$t('auth.logout')"
-          @click="auth.logout()"
-        >
-          <LogOut class="w-4 h-4" />
-        </button>
-      </div>
-
-      <div v-if="!collapsed" class="text-xs text-gray-500 space-y-1 pt-2 border-t border-gray-800">
+      <div v-if="!collapsed" class="text-xs text-gray-500 space-y-1">
         <p>© 2026 Ticket Manager Challenge</p>
         <p class="text-gray-600">Created by <span class="text-primary-400">Artiom</span> and <span class="text-primary-400">Claude</span></p>
       </div>
