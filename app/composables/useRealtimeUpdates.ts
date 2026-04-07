@@ -66,11 +66,11 @@ export function useRealtimeUpdates() {
         }
       }
 
+      // Update ticket in place if it exists
       if (idx !== -1) {
         ticketsStore.tickets[idx] = data
-      } else {
-        ticketsStore.fetchTickets(ticketsStore.lastParams)
       }
+      // Don't fetch if ticket not in current list - it's probably filtered out
     } else if (type === 'ticket:deleted') {
       const idx = ticketsStore.tickets.findIndex(t => t.id === data.id)
       if (idx !== -1) {
