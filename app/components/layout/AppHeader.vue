@@ -5,12 +5,47 @@
     </div>
     <div class="flex items-center gap-3">
       <!-- Language switcher -->
-      <button
-        class="px-2 py-1 text-xs font-semibold rounded-md border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-        @click="toggleLocale"
-      >
-        {{ locale === 'en' ? 'IT' : 'EN' }}
-      </button>
+      <div class="relative">
+        <button
+          ref="langButtonRef"
+          @click="langDropdownOpen = !langDropdownOpen"
+          class="px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex items-center gap-2"
+        >
+          <Languages class="w-4 h-4" />
+          <span>{{ locale === 'en' ? 'English' : 'Italiano' }}</span>
+          <ChevronDown class="w-3 h-3" />
+        </button>
+
+        <Teleport to="body">
+          <div
+            v-if="langDropdownOpen"
+            class="fixed inset-0 z-30"
+            @click="langDropdownOpen = false"
+          />
+          <div
+            v-if="langDropdownOpen"
+            :style="langDropdownStyle"
+            class="fixed z-40 w-40 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-lg overflow-hidden"
+          >
+            <button
+              @click="setLocale('en'); langDropdownOpen = false"
+              class="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center justify-between"
+              :class="locale === 'en' && 'bg-primary-50 dark:bg-primary-950/20 text-primary-600 dark:text-primary-400'"
+            >
+              <span>English</span>
+              <Check v-if="locale === 'en'" class="w-4 h-4" />
+            </button>
+            <button
+              @click="setLocale('it'); langDropdownOpen = false"
+              class="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center justify-between"
+              :class="locale === 'it' && 'bg-primary-50 dark:bg-primary-950/20 text-primary-600 dark:text-primary-400'"
+            >
+              <span>Italiano</span>
+              <Check v-if="locale === 'it'" class="w-4 h-4" />
+            </button>
+          </div>
+        </Teleport>
+      </div>
 
       <!-- Theme toggle -->
       <ClientOnly>
@@ -38,17 +73,24 @@
 </template>
 
 <script setup lang="ts">
-import { Sun, Moon } from 'lucide-vue-next'
+import { Sun, Moon, Languages, ChevronDown, Check } from 'lucide-vue-next'
 import { useAuthStore } from '~/stores/auth'
 
 const auth = useAuthStore()
 const route = useRoute()
 const { locale, setLocale, t } = useI18n()
 const { isDark, toggle: toggleTheme } = useTheme()
+const langDropdownOpen = ref(false)
+const langButtonRef = ref<HTMLElement | null>(null)
 
-function toggleLocale() {
-  setLocale(locale.value === 'en' ? 'it' : 'en')
-}
+const langDropdownStyle = computed(() => {
+  if (!langButtonRef.value) return {}
+  const rect = langButtonRef.value.getBoundingClientRect()
+  return {
+    top: `${rect.bottom + 8}px`,
+    right: `${window.innerWidth - rect.right}px`,
+  }
+})
 
 const pageTitleKeys: Record<string, string> = {
   '/': 'dashboard.title',
