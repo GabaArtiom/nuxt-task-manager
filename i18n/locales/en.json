@@ -165,7 +165,8 @@
     "loading": "Loading...",
     "error": "Error",
     "success": "Success",
-    "confirmDelete": "Are you sure you want to delete this ticket?"
+    "confirmDelete": "Are you sure you want to delete this ticket?",
+    "back": "Back"
   },
   "theme": {
     "light": "Light",

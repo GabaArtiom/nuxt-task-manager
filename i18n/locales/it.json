@@ -165,7 +165,8 @@
     "loading": "Caricamento...",
     "error": "Errore",
     "success": "Successo",
-    "confirmDelete": "Sei sicuro di voler eliminare questo ticket?"
+    "confirmDelete": "Sei sicuro di voler eliminare questo ticket?",
+    "back": "Indietro"
   },
   "theme": {
     "light": "Chiaro",

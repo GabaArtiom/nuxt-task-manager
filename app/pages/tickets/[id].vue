@@ -1,10 +1,10 @@
 <template>
   <div>
     <div class="mb-6">
-      <NuxtLink to="/tickets" class="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 mb-3">
+      <button @click="$router.back()" class="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 mb-3">
         <ArrowLeft class="w-4 h-4" />
-        {{ $t('tickets.backToList') }}
-      </NuxtLink>
+        {{ $t('common.back') }}
+      </button>
       <div class="flex items-center justify-between">
         <h2 class="text-2xl font-heading font-bold text-gray-900 dark:text-gray-100">{{ ticket?.customer_name }}</h2>
         <div class="flex items-center gap-2">
