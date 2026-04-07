@@ -19,6 +19,10 @@ export default defineNuxtConfig({
     '@nuxtjs/i18n',
   ],
 
+  pinia: {
+    storesDirs: ['./stores/**'],
+  },
+
   i18n: {
     langDir: '../i18n/locales',
     locales: [
