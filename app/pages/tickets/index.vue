@@ -138,15 +138,6 @@
       @confirm="bulkDelete"
       @cancel="showBulkDeleteConfirm = false"
     />
-
-    <ClientOnly>
-      <ToastNotification
-        :visible="showNotification"
-        :message="notificationMessage"
-        :type="notificationType"
-        @close="closeNotification"
-      />
-    </ClientOnly>
   </div>
 </template>
 
@@ -293,8 +284,6 @@ onMounted(async () => {
     try { technicians.value = await $fetch<User[]>('/api/users') } catch {}
   }
 })
-
-const { showNotification, notificationMessage, notificationType, closeNotification } = useRealtimeUpdates()
 </script>
 
 <style scoped>
