@@ -71,7 +71,7 @@
         <button
           class="p-1.5 rounded-lg text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           :title="$t('auth.logout')"
-          @click="auth.logout()"
+          @click="handleLogout"
         >
           <LogOut class="w-4 h-4" />
         </button>
@@ -118,4 +118,10 @@ const userInitials = computed(() => {
   if (!auth.user) return '?'
   return (auth.user.name[0] + auth.user.family_name[0]).toUpperCase()
 })
+
+function handleLogout() {
+  if (confirm(t('auth.logoutConfirm'))) {
+    auth.logout()
+  }
+}
 </script>

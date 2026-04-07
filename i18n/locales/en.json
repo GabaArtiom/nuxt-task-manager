@@ -33,7 +33,8 @@
     "repeatPassword": "Repeat your password",
     "saving": "Saving...",
     "passwordsNoMatch": "Passwords do not match",
-    "logout": "Logout"
+    "logout": "Logout",
+    "logoutConfirm": "Are you sure you want to logout?"
   },
   "dashboard": {
     "title": "Dashboard",

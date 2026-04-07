@@ -33,7 +33,8 @@
     "repeatPassword": "Ripeti la password",
     "saving": "Salvataggio...",
     "passwordsNoMatch": "Le password non corrispondono",
-    "logout": "Esci"
+    "logout": "Esci",
+    "logoutConfirm": "Sei sicuro di voler uscire?"
   },
   "dashboard": {
     "title": "Dashboard",
