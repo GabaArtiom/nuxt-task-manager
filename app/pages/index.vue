@@ -14,7 +14,7 @@
         <StatCard
           :value="stats?.unassigned ?? 0"
           :label="$t('dashboard.unassigned')"
-          :icon="AlertCircle"
+          :icon="AlertTriangle"
           border-color="border-l-red-500"
           icon-bg="bg-red-50 dark:bg-red-950"
           icon-color="text-red-600"
@@ -22,7 +22,7 @@
         <StatCard
           :value="stats?.todo ?? 0"
           :label="auth.isAdmin ? $t('dashboard.toBeWorkedAll') : $t('dashboard.toBeWorkedMine')"
-          :icon="Clock"
+          :icon="Timer"
           border-color="border-l-amber-500"
           icon-bg="bg-amber-50 dark:bg-amber-950"
           icon-color="text-amber-600"
@@ -30,7 +30,7 @@
         <StatCard
           :value="stats?.in_progress ?? 0"
           :label="auth.isAdmin ? $t('dashboard.inProgressAll') : $t('dashboard.inProgressMine')"
-          :icon="Loader"
+          :icon="Zap"
           border-color="border-l-blue-500"
           icon-bg="bg-blue-50 dark:bg-blue-950"
           icon-color="text-blue-600"
@@ -72,7 +72,7 @@
 </template>
 
 <script setup lang="ts">
-import { AlertCircle, Clock, Loader } from 'lucide-vue-next'
+import { AlertTriangle, Timer, Zap } from 'lucide-vue-next'
 import { useAuthStore } from '~/stores/auth'
 import type { DashboardStats } from '~/types'
 
