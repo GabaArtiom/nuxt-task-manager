@@ -53,21 +53,21 @@ export function useRealtimeUpdates() {
       const idx = ticketsStore.tickets.findIndex(t => t.id === data.id)
       const oldTicket = idx !== -1 ? ticketsStore.tickets[idx] : null
 
-      if (idx !== -1) {
-        ticketsStore.tickets[idx] = data
-      } else {
-        ticketsStore.fetchTickets(ticketsStore.lastParams)
-      }
-
-      // Show notification if assigned to me
+      // Show notification if assigned to me (check before updating the list)
       if (data.assigned_to === auth.user?.id) {
         const wasAssignedToMe = oldTicket?.assigned_to === auth.user?.id
-        console.log('Assignment check:', { wasAssignedToMe, currentUser: auth.user?.id, assignedTo: data.assigned_to })
+        console.log('Assignment check:', { wasAssignedToMe, currentUser: auth.user?.id, assignedTo: data.assigned_to, oldTicket })
         if (!wasAssignedToMe) {
           notificationMessage.value = t('notifications.assignedToYou', { customer: data.customer_name })
           notificationType.value = 'assigned'
           showNotification.value = true
         }
+      }
+
+      if (idx !== -1) {
+        ticketsStore.tickets[idx] = data
+      } else {
+        ticketsStore.fetchTickets(ticketsStore.lastParams)
       }
     } else if (type === 'ticket:deleted') {
       const idx = ticketsStore.tickets.findIndex(t => t.id === data.id)

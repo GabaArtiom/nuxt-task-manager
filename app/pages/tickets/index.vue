@@ -139,12 +139,14 @@
       @cancel="showBulkDeleteConfirm = false"
     />
 
-    <ToastNotification
-      :visible="showNotification"
-      :message="notificationMessage"
-      :type="notificationType"
-      @close="closeNotification"
-    />
+    <ClientOnly>
+      <ToastNotification
+        :visible="showNotification"
+        :message="notificationMessage"
+        :type="notificationType"
+        @close="closeNotification"
+      />
+    </ClientOnly>
   </div>
 </template>
 
