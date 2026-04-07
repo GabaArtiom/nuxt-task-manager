@@ -97,7 +97,11 @@
             v-for="ticket in getTicketsByStatus('to_be_worked')"
             :key="ticket.id"
             :ticket="ticket"
+            :is-drag-over="dragOverTicket?.id === ticket.id"
             @dragstart="onDragStart($event, ticket)"
+            @dragover="onDragOver($event, ticket)"
+            @dragleave="onDragLeave"
+            @drop="onDropOnCard($event, ticket)"
             @click="navigateTo(`/tickets/${ticket.id}`)"
           />
         </div>
@@ -122,7 +126,11 @@
             v-for="ticket in getTicketsByStatus('in_progress')"
             :key="ticket.id"
             :ticket="ticket"
+            :is-drag-over="dragOverTicket?.id === ticket.id"
             @dragstart="onDragStart($event, ticket)"
+            @dragover="onDragOver($event, ticket)"
+            @dragleave="onDragLeave"
+            @drop="onDropOnCard($event, ticket)"
             @click="navigateTo(`/tickets/${ticket.id}`)"
           />
         </div>
@@ -147,7 +155,11 @@
             v-for="ticket in getTicketsByStatus('done')"
             :key="ticket.id"
             :ticket="ticket"
+            :is-drag-over="dragOverTicket?.id === ticket.id"
             @dragstart="onDragStart($event, ticket)"
+            @dragover="onDragOver($event, ticket)"
+            @dragleave="onDragLeave"
+            @drop="onDropOnCard($event, ticket)"
             @click="navigateTo(`/tickets/${ticket.id}`)"
           />
         </div>
@@ -172,7 +184,11 @@
             v-for="ticket in getTicketsByStatus('canceled')"
             :key="ticket.id"
             :ticket="ticket"
+            :is-drag-over="dragOverTicket?.id === ticket.id"
             @dragstart="onDragStart($event, ticket)"
+            @dragover="onDragOver($event, ticket)"
+            @dragleave="onDragLeave"
+            @drop="onDropOnCard($event, ticket)"
             @click="navigateTo(`/tickets/${ticket.id}`)"
           />
         </div>
@@ -209,6 +225,7 @@ const page = ref(1)
 const perPage = ref(process.client ? (localStorage.getItem('tickets_per_page') || '10') : '10')
 const viewMode = ref<'list' | 'kanban'>('list')
 const draggedTicket = ref<Ticket | null>(null)
+const dragOverTicket = ref<Ticket | null>(null)
 
 const filters = reactive({
   status: '',
@@ -270,6 +287,46 @@ function onDragStart(event: DragEvent, ticket: Ticket) {
   if (event.dataTransfer) {
     event.dataTransfer.effectAllowed = 'move'
   }
+}
+
+function onDragOver(event: DragEvent, ticket: Ticket) {
+  event.preventDefault()
+  if (draggedTicket.value && draggedTicket.value.id !== ticket.id) {
+    dragOverTicket.value = ticket
+  }
+}
+
+function onDragLeave() {
+  dragOverTicket.value = null
+}
+
+async function onDropOnCard(event: DragEvent, targetTicket: Ticket) {
+  event.preventDefault()
+  event.stopPropagation()
+
+  if (!draggedTicket.value || draggedTicket.value.id === targetTicket.id) {
+    draggedTicket.value = null
+    dragOverTicket.value = null
+    return
+  }
+
+  const draggedId = draggedTicket.value.id
+  const targetId = targetTicket.id
+
+  // Reorder within the same status
+  if (draggedTicket.value.status === targetTicket.status) {
+    const tickets = ticketsStore.tickets
+    const draggedIndex = tickets.findIndex(t => t.id === draggedId)
+    const targetIndex = tickets.findIndex(t => t.id === targetId)
+
+    if (draggedIndex !== -1 && targetIndex !== -1) {
+      const [removed] = tickets.splice(draggedIndex, 1)
+      tickets.splice(targetIndex, 0, removed)
+    }
+  }
+
+  draggedTicket.value = null
+  dragOverTicket.value = null
 }
 
 async function onDrop(event: DragEvent, newStatus: TicketStatus) {

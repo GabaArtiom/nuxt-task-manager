@@ -1,10 +1,11 @@
 <template>
   <div
     draggable="true"
-    class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 cursor-move hover:shadow-md transition-shadow"
+    class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 cursor-move hover:shadow-md transition-all"
     :class="[
       ticket.is_urgent && ticket.status !== 'done' && ticket.status !== 'canceled' && 'border-l-4 border-l-red-500',
       isMine && !ticket.is_urgent && 'border-l-4 border-l-primary-500',
+      isDragOver && 'border-t-4 border-t-primary-500 pt-2',
     ]"
   >
     <div class="flex items-start justify-between gap-2 mb-2">
@@ -33,6 +34,7 @@ import { useAuthStore } from '~/stores/auth'
 
 const props = defineProps<{
   ticket: Ticket
+  isDragOver?: boolean
 }>()
 
 const auth = useAuthStore()
