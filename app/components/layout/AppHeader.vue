@@ -81,7 +81,7 @@
 </template>
 
 <script setup lang="ts">
-import { Sun, Moon, Languages, ChevronDown, Check } from 'lucide-vue-next'
+import { Sun, Moon, Languages, ChevronDown, Check, LogOut } from 'lucide-vue-next'
 import { useAuthStore } from '~/stores/auth'
 
 const auth = useAuthStore()
@@ -112,5 +112,10 @@ const pageTitleKeys: Record<string, string> = {
 const pageTitle = computed(() => {
   const key = pageTitleKeys[route.path]
   return key ? t(key) : 'Tickets'
+})
+
+const userInitials = computed(() => {
+  if (!auth.user) return '?'
+  return (auth.user.name[0] + auth.user.family_name[0]).toUpperCase()
 })
 </script>
