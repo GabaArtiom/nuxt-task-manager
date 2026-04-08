@@ -6,6 +6,7 @@
   },
   "type": "module",
   "scripts": {
+    "update": "./scripts/update.sh",
     "build": "nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
