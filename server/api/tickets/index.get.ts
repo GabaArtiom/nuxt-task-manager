@@ -22,11 +22,12 @@ export default defineEventHandler(async (event) => {
 
   // Filter: assigned to current user (my tickets)
   if (query.my === 'true') {
-    if (query.technician_id) {
-      where.assigned_to = query.technician_id as string
-    } else {
-      where.assigned_to = user.id
-    }
+    where.assigned_to = user.id
+  }
+
+  // Filter: assigned to specific technician (admin only)
+  if (query.technician_id && user.role === 'admin') {
+    where.assigned_to = query.technician_id as string
   }
 
   // Filter: status
