@@ -24,3 +24,7 @@ logs
 !.env.example
 bun.lock
 !.env.gpg
+
+# PM2 ecosystem config (server-specific)
+ecosystem.config.cjs
+ecosystem.config.js
