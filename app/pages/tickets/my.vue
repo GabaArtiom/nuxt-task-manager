@@ -7,26 +7,28 @@
           {{ auth.isAdmin ? $t('tickets.mySubtitleAdmin') : $t('tickets.mySubtitleTech') }}
         </p>
       </div>
-      <div class="flex items-center gap-2">
-        <button
-          @click="viewMode = 'list'"
-          :class="[
-            'px-3 py-2 text-sm font-medium rounded-lg transition-colors',
-            viewMode === 'list' ? 'bg-primary-600 text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
-          ]"
-        >
-          List
-        </button>
-        <button
-          @click="viewMode = 'kanban'"
-          :class="[
-            'px-3 py-2 text-sm font-medium rounded-lg transition-colors',
-            viewMode === 'kanban' ? 'bg-primary-600 text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
-          ]"
-        >
-          Kanban
-        </button>
-      </div>
+      <ClientOnly>
+        <div class="flex items-center gap-2">
+          <button
+            @click="viewMode = 'list'"
+            :class="[
+              'px-3 py-2 text-sm font-medium rounded-lg transition-colors',
+              viewMode === 'list' ? 'bg-primary-600 text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+            ]"
+          >
+            List
+          </button>
+          <button
+            @click="viewMode = 'kanban'"
+            :class="[
+              'px-3 py-2 text-sm font-medium rounded-lg transition-colors',
+              viewMode === 'kanban' ? 'bg-primary-600 text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+            ]"
+          >
+            Kanban
+          </button>
+        </div>
+      </ClientOnly>
     </div>
 
     <div class="flex flex-wrap items-center gap-2 mb-4">
@@ -226,6 +228,7 @@ const perPage = ref(process.client ? (localStorage.getItem('tickets_per_page') |
 const viewMode = ref<'list' | 'kanban'>(
   process.client ? ((localStorage.getItem('my_tickets_view') as 'list' | 'kanban') || 'list') : 'list'
 )
+
 const draggedTicket = ref<Ticket | null>(null)
 const dragOverTicket = ref<Ticket | null>(null)
 
