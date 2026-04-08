@@ -39,11 +39,17 @@
   "dashboard": {
     "title": "Dashboard",
     "subtitle": "Panoramica del sistema ticket",
+    "totalTickets": "Ticket Totali",
+    "myTotalTickets": "I Miei Ticket Totali",
     "unassigned": "Ticket Non Assegnati",
     "toBeWorkedAll": "Da Lavorare (Tutti)",
     "toBeWorkedMine": "Da Lavorare (Miei)",
     "inProgressAll": "In Corso (Tutti)",
     "inProgressMine": "In Corso (Miei)",
+    "doneAll": "Completati (Tutti)",
+    "doneMine": "Completati (Miei)",
+    "canceledAll": "Annullati (Tutti)",
+    "canceledMine": "Annullati (Miei)",
     "byTechnician": "Per Tecnico"
   },
   "tickets": {

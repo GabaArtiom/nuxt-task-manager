@@ -37,9 +37,12 @@ export interface Stats {
 }
 
 export interface DashboardStats {
+  total: number
   unassigned: number
   to_be_worked: number
   in_progress: number
+  done: number
+  canceled: number
   by_technician?: TechnicianStats[]
 }
 

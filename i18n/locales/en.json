@@ -39,11 +39,17 @@
   "dashboard": {
     "title": "Dashboard",
     "subtitle": "Overview of your ticket system",
+    "totalTickets": "Total Tickets",
+    "myTotalTickets": "My Total Tickets",
     "unassigned": "Unassigned Tickets",
     "toBeWorkedAll": "To Be Worked (All)",
     "toBeWorkedMine": "To Be Worked (Mine)",
     "inProgressAll": "In Progress (All)",
     "inProgressMine": "In Progress (Mine)",
+    "doneAll": "Done (All)",
+    "doneMine": "Done (Mine)",
+    "canceledAll": "Canceled (All)",
+    "canceledMine": "Canceled (Mine)",
     "byTechnician": "By Technician"
   },
   "tickets": {
