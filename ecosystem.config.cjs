@@ -8,7 +8,8 @@ module.exports = {
       // Working directory (optional)
       env: {
         NODE_ENV: 'production',
-        PORT: 4178 // Change the port here
+        PORT: 4179,
+        DATABASE_URL: 'file:/home/webapp/web/webapp-3.altuofianco.com/public_html/prisma/prod.db'
       }
     }
   ]
