@@ -47,11 +47,6 @@ export default defineEventHandler(async (event) => {
     where.is_urgent = false
   }
 
-  // Filter: exclude done/canceled for "my" view
-  if (query.active === 'true') {
-    where.status = { notIn: ['done', 'canceled'] }
-  }
-
   // Pagination
   const page = Math.max(1, Number(query.page) || 1)
   const perPage = [10, 15, 20].includes(Number(query.limit)) ? Number(query.limit) : 10

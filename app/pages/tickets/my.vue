@@ -36,10 +36,10 @@
         <CustomSelect v-model="filters.status" :options="statusOptions" />
       </div>
       <div class="w-40">
-        <CustomSelect v-model="filters.urgent" :options="urgencyOptions" />
+        <CustomSelect v-model="filters.type" :options="typeOptions" />
       </div>
-      <div v-if="auth.isAdmin" class="w-48">
-        <CustomSelect v-model="filters.technician_id" :options="techOptions" />
+      <div class="w-40">
+        <CustomSelect v-model="filters.urgent" :options="urgencyOptions" />
       </div>
       <div v-if="viewMode === 'list'" class="w-24">
         <CustomSelect v-model="perPage" :options="perPageOptions" />
@@ -241,8 +241,8 @@ watch(viewMode, (newMode) => {
 
 const filters = reactive({
   status: '',
+  type: '',
   urgent: '',
-  technician_id: (route.query.technician_id as string) || '',
 })
 
 const statusOptions = computed(() => [
@@ -252,14 +252,19 @@ const statusOptions = computed(() => [
   { value: 'done', label: t('tickets.statusDone') },
   { value: 'canceled', label: t('tickets.statusCanceled') },
 ])
+const typeOptions = computed(() => [
+  { value: '', label: t('tickets.allTypes') },
+  { value: 'Bug', label: 'Bug' },
+  { value: 'Fixes', label: 'Fixes' },
+  { value: 'Improvement', label: 'Improvement' },
+  { value: 'Info', label: 'Info' },
+  { value: 'Typo', label: 'Typo' },
+  { value: 'Other', label: 'Other' },
+])
 const urgencyOptions = computed(() => [
   { value: '', label: t('tickets.allUrgency') },
   { value: 'true', label: t('tickets.urgent') },
   { value: 'false', label: t('tickets.notUrgent') },
-])
-const techOptions = computed(() => [
-  { value: '', label: t('tickets.allTechnicians') },
-  ...technicians.value.map(u => ({ value: u.id, label: `${u.name} ${u.family_name}` })),
 ])
 const perPageOptions = [
   { value: '10', label: '10' },
@@ -284,9 +289,8 @@ async function fetchTickets() {
   }
 
   if (filters.status) params.status = filters.status
-  else if (!auth.isAdmin) params.active = 'true'
+  if (filters.type) params.type = filters.type
   if (filters.urgent) params.urgent = filters.urgent
-  if (filters.technician_id) params.technician_id = filters.technician_id
   await ticketsStore.fetchTickets(params)
 }
 
