@@ -224,7 +224,7 @@ const technicians = ref<User[]>([])
 const page = ref(1)
 const perPage = ref(process.client ? (localStorage.getItem('tickets_per_page') || '10') : '10')
 const viewMode = ref<'list' | 'kanban'>(
-  process.client ? (localStorage.getItem('my_tickets_view') as 'list' | 'kanban' || 'list') : 'list'
+  process.client ? ((localStorage.getItem('my_tickets_view') as 'list' | 'kanban') || 'list') : 'list'
 )
 const draggedTicket = ref<Ticket | null>(null)
 const dragOverTicket = ref<Ticket | null>(null)
