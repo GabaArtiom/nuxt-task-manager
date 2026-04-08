@@ -54,6 +54,9 @@
       <div class="w-36">
         <CustomSelect v-model="filters.urgent" :options="urgencyOptions" />
       </div>
+      <div v-if="auth.isAdmin" class="w-48">
+        <CustomSelect v-model="filters.technician_id" :options="techOptions" />
+      </div>
       <div class="w-24">
         <CustomSelect v-model="perPage" :options="perPageOptions" />
       </div>
@@ -170,6 +173,7 @@ const filters = reactive({
   status: (route.query.status as string) || '',
   type: (route.query.type as string) || '',
   urgent: (route.query.urgent as string) || '',
+  technician_id: (route.query.technician_id as string) || '',
 })
 
 const viewOptions = computed(() => [
@@ -192,6 +196,10 @@ const urgencyOptions = computed(() => [
   { value: 'true', label: t('tickets.urgent') },
   { value: 'false', label: t('tickets.notUrgent') },
 ])
+const techOptions = computed(() => [
+  { value: '', label: t('tickets.allTechnicians') },
+  ...technicians.value.map(u => ({ value: u.id, label: `${u.name} ${u.family_name}` })),
+])
 const perPageOptions = [
   { value: '10', label: '10' },
   { value: '15', label: '15' },
@@ -199,7 +207,7 @@ const perPageOptions = [
 ]
 
 const hasActiveFilters = computed(() => {
-  return filters.view !== 'all' || filters.status !== '' || filters.type !== '' || filters.urgent !== ''
+  return filters.view !== 'all' || filters.status !== '' || filters.type !== '' || filters.urgent !== '' || filters.technician_id !== ''
 })
 
 function clearFilters() {
@@ -207,6 +215,7 @@ function clearFilters() {
   filters.status = ''
   filters.type = ''
   filters.urgent = ''
+  filters.technician_id = ''
 }
 
 // Debounced filters watcher
@@ -227,6 +236,7 @@ function updateURLParams() {
   if (filters.status) query.status = filters.status
   if (filters.type) query.type = filters.type
   if (filters.urgent) query.urgent = filters.urgent
+  if (filters.technician_id) query.technician_id = filters.technician_id
   router.replace({ query })
 }
 
@@ -239,6 +249,7 @@ async function fetchTickets() {
   if (filters.status) params.status = filters.status
   if (filters.type) params.type = filters.type
   if (filters.urgent) params.urgent = filters.urgent
+  if (filters.technician_id) params.technician_id = filters.technician_id
   await ticketsStore.fetchTickets(params)
   selectedTickets.value = []
 }
