@@ -80,7 +80,7 @@
               v-for="tech in stats.by_technician"
               :key="tech.user.id"
               class="hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors"
-              @click="navigateTo(`/tickets/my?technician_id=${tech.user.id}`)"
+              @click="navigateTo(`/tickets?technician_id=${tech.user.id}`)"
             >
               <td class="px-6 py-3 text-sm font-medium text-primary-600 dark:text-primary-400 hover:underline">{{ tech.user.name }} {{ tech.user.family_name }}</td>
               <td class="px-6 py-3"><span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-400 text-sm font-semibold">{{ tech.to_be_worked }}</span></td>
