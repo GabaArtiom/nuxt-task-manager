@@ -1,13 +1,9 @@
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '~~/server/utils/db'
+import { requireAuth } from '~~/server/utils/auth'
 import type { DashboardStats } from '~/types'
 
-const prisma = new PrismaClient()
-
 export default defineEventHandler(async (event): Promise<DashboardStats> => {
-  const user = event.context.user
-  if (!user) {
-    throw createError({ statusCode: 401, message: 'Unauthorized' })
-  }
+  const user = await requireAuth(event)
 
   const isAdmin = user.role === 'admin'
 
