@@ -63,6 +63,7 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
 
   runtimeConfig: {
+    databaseUrl: process.env.DATABASE_URL || 'file:./dev.db',
     jwtSecret: process.env.JWT_SECRET || 'dev-secret-change-in-production-min-32-chars',
     smtpHost: process.env.SMTP_HOST || 'localhost',
     smtpPort: process.env.SMTP_PORT || '587',
