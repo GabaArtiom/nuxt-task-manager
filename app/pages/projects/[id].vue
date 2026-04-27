@@ -99,20 +99,28 @@
         </div>
 
         <!-- Draggable task list -->
-        <div class="bg-gray-100 dark:bg-gray-800/50 rounded-xl p-2 flex flex-col gap-2 min-h-[80px]">
-          <draggable
-            v-model="column.tasks"
-            group="tasks"
-            item-key="id"
+        <div class="bg-gray-100 dark:bg-gray-800/50 rounded-xl p-2 flex flex-col min-h-[80px]">
+          <Container
+            group-name="tasks"
+            :get-child-payload="(i) => column.tasks[i]"
+            :animation-duration="200"
+            drag-class="task-dragging"
+            drop-class="task-dropping"
+            :drop-placeholder="{
+              className: 'task-placeholder',
+              animationDuration: 200,
+              showOnTop: true,
+            }"
             class="flex flex-col gap-2 min-h-[40px]"
-            ghost-class="opacity-30"
-            :animation="200"
-            @start="onDragStart"
-            @change="(e) => onChange(e, column)"
+            @drag-start="onDragStart"
+            @drag-end="onDragEnd"
+            @drop="(e) => onDrop(e, column)"
           >
-            <template #item="{ element: task }">
+            <Draggable v-for="task in column.tasks" :key="task.id">
               <div
-                class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-3 cursor-grab active:cursor-grabbing hover:shadow-sm hover:border-primary-300 dark:hover:border-primary-700 transition-all group"
+                :data-task-id="task.id"
+                :style="draggingTaskId === task.id ? 'visibility:hidden' : ''"
+                class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-3 cursor-grab active:cursor-grabbing hover:shadow-sm hover:border-primary-300 dark:hover:border-primary-700 transition-all mb-2"
                 @click="openTask(task, column)"
               >
                 <div class="mb-2">
@@ -134,12 +142,12 @@
                   <span v-if="task.due_date" class="text-xs text-gray-400">{{ formatDate(task.due_date) }}</span>
                 </div>
               </div>
-            </template>
-          </draggable>
+            </Draggable>
+          </Container>
 
           <!-- Add task button -->
           <button
-            class="flex items-center gap-1.5 w-full px-2 py-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-white dark:hover:bg-gray-900 rounded-lg transition-colors"
+            class="flex items-center gap-1.5 w-full px-2 py-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-white dark:hover:bg-gray-900 rounded-lg transition-colors mt-1"
             @click="startAddTask(column)"
           >
             <Plus class="w-4 h-4" />
@@ -238,6 +246,7 @@
         @cancel="confirmDialog = null"
       />
     </ClientOnly>
+
   </div>
 </template>
 
@@ -245,8 +254,7 @@
 import { ArrowLeft, Plus, Pencil, Trash2, X, Settings } from 'lucide-vue-next'
 import { format } from 'date-fns'
 import { useAuthStore } from '~/stores/auth'
-// @ts-ignore
-import draggable from 'vuedraggable'
+import { Container, Draggable } from 'vue3-smooth-dnd'
 import AddTaskModal from '~/components/projects/AddTaskModal.vue'
 import TaskModal from '~/components/projects/TaskModal.vue'
 import ProjectSettings from '~/components/projects/ProjectSettings.vue'
@@ -270,6 +278,7 @@ const selectedColumn = ref<any>(null)
 const addingToColumn = ref<any>(null)
 const showSettings = ref(false)
 const confirmDialog = ref<any>(null)
+const draggingTaskId = ref<string | null>(null)
 
 const isOwner = computed(() =>
   project.value?.members?.some((m: any) => m.user_id === auth.user?.id && m.role === 'owner')
@@ -287,26 +296,25 @@ async function loadProject() {
   }
 }
 
-function onDragStart(event: any) {
-  const el = event.item
-  const rect = el.getBoundingClientRect()
-  const x = event.originalEvent.clientX - rect.left
-  const y = event.originalEvent.clientY - rect.top
-  event.originalEvent.dataTransfer?.setDragImage(el, x, y)
+
+function onDragStart({ isSource, payload }: any) {
+  if (isSource && payload) draggingTaskId.value = payload.id
 }
 
-async function onChange(event: any, column: any) {
-  if (event.added) {
-    const { element: task, newIndex } = event.added
-    await $fetch(`/api/projects/${projectId}/tasks/${task.id}`, {
+function onDragEnd() {
+  draggingTaskId.value = null
+}
+
+async function onDrop({ removedIndex, addedIndex, payload }: any, column: any) {
+  draggingTaskId.value = null
+  if (removedIndex !== null) {
+    column.tasks.splice(removedIndex, 1)
+  }
+  if (addedIndex !== null) {
+    column.tasks.splice(addedIndex, 0, payload)
+    await $fetch(`/api/projects/${projectId}/tasks/${payload.id}`, {
       method: 'PUT',
-      body: { column_id: column.id, order: newIndex },
-    })
-  } else if (event.moved) {
-    const { element: task, newIndex } = event.moved
-    await $fetch(`/api/projects/${projectId}/tasks/${task.id}`, {
-      method: 'PUT',
-      body: { column_id: column.id, order: newIndex },
+      body: { column_id: column.id, order: addedIndex },
     })
   }
 }
@@ -440,3 +448,24 @@ watch(showAddColumn, async (val) => {
   }
 })
 </script>
+
+<style>
+/* Карточка пока тащишь */
+.task-dragging {
+  transform: rotate(2deg) scale(1.04) !important;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.18), 0 8px 16px rgba(0,0,0,0.1) !important;
+  opacity: 0.95 !important;
+  cursor: grabbing !important;
+  border-radius: 0.5rem;
+}
+
+/* Placeholder куда упадёт */
+.task-placeholder {
+  border: 2px dashed rgb(99 102 241 / 0.5) !important;
+  background: rgb(99 102 241 / 0.06) !important;
+  border-radius: 0.5rem !important;
+  margin-bottom: 0.5rem;
+  opacity: 1 !important;
+}
+
+</style>
