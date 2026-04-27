@@ -8,37 +8,86 @@ datasource db {
 }
 
 model User {
-  id                    String    @id @default(uuid())
-  name                  String
-  family_name           String
-  email                 String    @unique
-  password              String
-  role                  String // 'admin' | 'technician'
-  is_locked             Boolean   @default(false)
-  reset_token           String?
+  id                     String    @id @default(uuid())
+  name                   String
+  family_name            String
+  email                  String    @unique
+  password               String
+  role                   String    @default("member") // 'admin' | 'member'
+  is_locked              Boolean   @default(false)
+  reset_token            String?
   reset_token_expires_at DateTime?
-  created_at            DateTime  @default(now())
+  created_at             DateTime  @default(now())
 
-  assigned_tickets Ticket[] @relation("AssignedTickets")
-  created_tickets  Ticket[] @relation("CreatedTickets")
+  project_memberships ProjectMember[]
+  created_projects    Project[]       @relation("ProjectCreator")
+  assigned_tasks      Task[]          @relation("AssignedTasks")
+  created_tasks       Task[]          @relation("CreatedTasks")
 
   @@map("users")
 }
 
-model Ticket {
-  id            String   @id @default(uuid())
-  customer_name String
-  description   String?
-  type          String // 'Bug' | 'Fixes' | 'Improvement' | 'Info' | 'Typo' | 'Other'
-  is_urgent     Boolean  @default(false)
-  status        String   @default("to_be_worked")
-  assigned_to   String?
-  created_by    String
-  created_at    DateTime @default(now())
-  updated_at    DateTime @default(now()) @updatedAt
+model Project {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  created_by  String
+  created_at  DateTime @default(now())
+  updated_at  DateTime @default(now()) @updatedAt
 
-  assignee User? @relation("AssignedTickets", fields: [assigned_to], references: [id], onDelete: SetNull)
-  creator  User  @relation("CreatedTickets", fields: [created_by], references: [id])
+  creator User            @relation("ProjectCreator", fields: [created_by], references: [id])
+  members ProjectMember[]
+  columns Column[]
+  tasks   Task[]
 
-  @@map("tickets")
+  @@map("projects")
+}
+
+model ProjectMember {
+  id         String   @id @default(uuid())
+  project_id String
+  user_id    String
+  role       String   @default("member") // 'owner' | 'member'
+  joined_at  DateTime @default(now())
+
+  project Project @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([project_id, user_id])
+  @@map("project_members")
+}
+
+model Column {
+  id         String   @id @default(uuid())
+  project_id String
+  name       String
+  order      Int      @default(0)
+  created_at DateTime @default(now())
+
+  project Project @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  tasks   Task[]
+
+  @@map("columns")
+}
+
+model Task {
+  id          String    @id @default(uuid())
+  project_id  String
+  column_id   String
+  title       String
+  description String?
+  priority    String    @default("medium") // 'low' | 'medium' | 'high' | 'urgent'
+  assigned_to String?
+  created_by  String
+  due_date    DateTime?
+  order       Int       @default(0)
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @default(now()) @updatedAt
+
+  project  Project @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  column   Column  @relation(fields: [column_id], references: [id], onDelete: Cascade)
+  assignee User?   @relation("AssignedTasks", fields: [assigned_to], references: [id], onDelete: SetNull)
+  creator  User    @relation("CreatedTasks", fields: [created_by], references: [id])
+
+  @@map("tasks")
 }

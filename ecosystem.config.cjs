@@ -1,16 +1,21 @@
 module.exports = {
   apps: [
     {
-      name: 'ag-backend-challenge', // Change this to your app's name
+      name: 'task-manager',
       script: './.output/server/index.mjs',
-      //       // Path to your Nuxt server file
       cwd: './',
-      // Working directory (optional)
       env: {
         NODE_ENV: 'production',
-        PORT: 4179,
-        DATABASE_URL: 'file:/home/webapp/web/webapp-3.altuofianco.com/public_html/prisma/prod.db'
+        PORT: 3000,
+        DATABASE_URL: 'file:/var/www/task-manager/prisma/prod.db',
+        JWT_SECRET: '',         // заполни на сервере
+        SMTP_HOST: 'smtp.gmail.com',
+        SMTP_PORT: '587',
+        SMTP_USER: '',          // заполни на сервере
+        SMTP_PASS: '',          // заполни на сервере
+        FROM_EMAIL: '',         // заполни на сервере
+        APP_URL: 'https://tasks.umervtilte.lol',
       }
     }
   ]
-};
+}

@@ -1,8 +1,6 @@
-export type UserRole = 'admin' | 'technician'
-
-export type TicketType = 'Bug' | 'Fixes' | 'Improvement' | 'Info' | 'Typo' | 'Other'
-
-export type TicketStatus = 'to_be_worked' | 'in_progress' | 'done' | 'canceled'
+export type UserRole = 'admin' | 'member'
+export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent'
+export type ProjectMemberRole = 'owner' | 'member'
 
 export interface User {
   id: string
@@ -14,42 +12,50 @@ export interface User {
   created_at: string
 }
 
-export interface Ticket {
+export interface ProjectMember {
   id: string
-  customer_name: string
+  project_id: string
+  user_id: string
+  role: ProjectMemberRole
+  joined_at: string
+  user: Pick<User, 'id' | 'name' | 'family_name' | 'email'>
+}
+
+export interface Column {
+  id: string
+  project_id: string
+  name: string
+  order: number
+  created_at: string
+  tasks: Task[]
+}
+
+export interface Task {
+  id: string
+  project_id: string
+  column_id: string
+  title: string
   description?: string | null
-  type: TicketType
-  is_urgent: boolean
-  status: TicketStatus
+  priority: TaskPriority
   assigned_to?: string | null
-  assignee?: User | null
+  assignee?: Pick<User, 'id' | 'name' | 'family_name'> | null
   created_by: string
-  creator?: User | null
+  creator?: Pick<User, 'id' | 'name' | 'family_name'>
+  due_date?: string | null
+  order: number
   created_at: string
   updated_at: string
 }
 
-export interface Stats {
-  todo: number
-  in_progress: number
-  done: number
-  canceled: number
-}
-
-export interface DashboardStats {
-  total: number
-  unassigned: number
-  to_be_worked: number
-  in_progress: number
-  done: number
-  canceled: number
-  by_technician?: TechnicianStats[]
-}
-
-export interface TechnicianStats {
-  user: Pick<User, 'id' | 'name' | 'family_name'>
-  to_be_worked: number
-  in_progress: number
-  done: number
-  canceled: number
+export interface Project {
+  id: string
+  name: string
+  description?: string | null
+  created_by: string
+  created_at: string
+  updated_at: string
+  creator?: Pick<User, 'id' | 'name' | 'family_name'>
+  members: ProjectMember[]
+  columns: Column[]
+  _count?: { tasks: number; columns: number }
 }

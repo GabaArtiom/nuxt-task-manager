@@ -7,20 +7,9 @@
         <slot />
       </main>
     </div>
-
-    <ClientOnly>
-      <ToastNotification
-        :visible="showNotification"
-        :message="notificationMessage"
-        :type="notificationType"
-        @close="closeNotification"
-      />
-    </ClientOnly>
   </div>
 </template>
 
 <script setup lang="ts">
 const sidebarCollapsed = useState('sidebar-collapsed', () => false)
-
-const { showNotification, notificationMessage, notificationType, closeNotification } = useRealtimeUpdates()
 </script>

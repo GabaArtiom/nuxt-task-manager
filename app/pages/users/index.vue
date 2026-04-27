@@ -88,7 +88,7 @@
             <div>
               <label class="label">{{ $t('users.role') }} *</label>
               <select v-model="addForm.role" required class="input">
-                <option value="technician">{{ $t('users.technician') }}</option>
+                <option value="member">{{ $t('users.member') }}</option>
                 <option value="admin">{{ $t('users.admin') }}</option>
               </select>
             </div>
@@ -125,7 +125,7 @@
             </div>
             <p v-if="editError" class="text-sm text-red-600">{{ editError }}</p>
             <button type="submit" class="w-full px-4 py-2.5 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors disabled:opacity-50" :disabled="editLoading">
-              {{ editLoading ? $t('auth.saving') : $t('tickets.saveChanges') }}
+              {{ editLoading ? $t('auth.saving') : $t('common.save') }}
             </button>
           </form>
         </div>
@@ -159,7 +159,7 @@ const toast = useToast()
 const showAddModal = ref(false)
 const addLoading = ref(false)
 const addError = ref('')
-const addForm = reactive({ name: '', family_name: '', email: '', role: 'technician' })
+const addForm = reactive({ name: '', family_name: '', email: '', role: 'member' })
 
 async function handleAddUser() {
   addLoading.value = true; addError.value = ''
@@ -167,7 +167,7 @@ async function handleAddUser() {
     await usersStore.createUser({ ...addForm })
     toast.success(t('users.userCreated'))
     showAddModal.value = false
-    addForm.name = ''; addForm.family_name = ''; addForm.email = ''; addForm.role = 'technician'
+    addForm.name = ''; addForm.family_name = ''; addForm.email = ''; addForm.role = 'member'
   } catch (e: any) { addError.value = e.data?.statusMessage || 'Failed' }
   finally { addLoading.value = false }
 }

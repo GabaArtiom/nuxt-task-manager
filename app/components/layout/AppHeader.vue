@@ -78,16 +78,18 @@
       </div>
     </div>
 
-    <ConfirmDialog
-      :visible="showLogoutConfirm"
-      :title="$t('auth.logout')"
-      :message="$t('auth.logoutConfirm')"
-      :confirm-text="$t('auth.logout')"
-      :cancel-text="$t('common.cancel')"
-      variant="warning"
-      @confirm="confirmLogout"
-      @cancel="showLogoutConfirm = false"
-    />
+    <ClientOnly>
+      <ConfirmDialog
+        :visible="showLogoutConfirm"
+        :title="$t('auth.logout')"
+        :message="$t('auth.logoutConfirm')"
+        :confirm-text="$t('auth.logout')"
+        :cancel-text="$t('common.cancel')"
+        variant="warning"
+        @confirm="confirmLogout"
+        @cancel="showLogoutConfirm = false"
+      />
+    </ClientOnly>
   </header>
 </template>
 
@@ -112,18 +114,12 @@ const langDropdownStyle = computed(() => {
   }
 })
 
-const pageTitleKeys: Record<string, string> = {
-  '/': 'dashboard.title',
-  '/tickets': 'tickets.openTickets',
-  '/tickets/new': 'tickets.create',
-  '/tickets/my': 'tickets.myTickets',
-  '/users': 'users.title',
-  '/stats': 'stats.title',
-}
-
 const pageTitle = computed(() => {
-  const key = pageTitleKeys[route.path]
-  return key ? t(key) : 'Tickets'
+  if (route.path === '/projects') return t('nav.myProjects')
+  if (route.path === '/projects/new') return t('nav.newProject')
+  if (route.path.startsWith('/projects/')) return t('nav.projects')
+  if (route.path === '/users') return t('users.title')
+  return t('app.name')
 })
 
 const userInitials = computed(() => {

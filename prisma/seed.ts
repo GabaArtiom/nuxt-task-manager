@@ -4,14 +4,12 @@ import bcrypt from 'bcryptjs'
 const prisma = new PrismaClient()
 
 async function main() {
-  // Only seed if DB is empty — never delete existing data
   const userCount = await prisma.user.count()
   if (userCount > 0) {
     console.log('Database already has data, skipping seed.')
     return
   }
 
-  // Create users
   const admin = await prisma.user.create({
     data: {
       name: 'Alice',
@@ -25,44 +23,66 @@ async function main() {
   const bob = await prisma.user.create({
     data: {
       name: 'Bob',
-      family_name: 'Tech',
+      family_name: 'Smith',
       email: 'bob@example.com',
-      password: await bcrypt.hash('Tech1234!', 10),
-      role: 'technician',
+      password: await bcrypt.hash('Member1234!', 10),
+      role: 'member',
     },
   })
 
   const carol = await prisma.user.create({
     data: {
       name: 'Carol',
-      family_name: 'Tech',
+      family_name: 'Jones',
       email: 'carol@example.com',
-      password: await bcrypt.hash('Tech1234!', 10),
-      role: 'technician',
+      password: await bcrypt.hash('Member1234!', 10),
+      role: 'member',
     },
   })
 
-  // Create tickets
-  const ticketData = [
-    { customer_name: 'Acme Corp', description: 'Login page crashes on mobile devices when using Chrome.', type: 'Bug', is_urgent: true, status: 'to_be_worked', assigned_to: null, created_by: admin.id },
-    { customer_name: 'Globex Inc', description: 'Add dark mode support to the dashboard.', type: 'Improvement', is_urgent: false, status: 'to_be_worked', assigned_to: null, created_by: admin.id },
-    { customer_name: 'Initech', description: 'Fix broken CSV export in reports section.', type: 'Fixes', is_urgent: true, status: 'in_progress', assigned_to: bob.id, created_by: admin.id },
-    { customer_name: 'Umbrella Corp', description: 'Customer requesting info about API rate limits.', type: 'Info', is_urgent: false, status: 'to_be_worked', assigned_to: bob.id, created_by: admin.id },
-    { customer_name: 'Stark Industries', description: 'Payment processing fails for orders above $10k.', type: 'Bug', is_urgent: true, status: 'in_progress', assigned_to: carol.id, created_by: admin.id },
-    { customer_name: 'Wayne Enterprises', description: 'Typo in the Terms of Service footer link.', type: 'Typo', is_urgent: false, status: 'done', assigned_to: carol.id, created_by: admin.id },
-    { customer_name: 'Cyberdyne Systems', description: 'Requested feature no longer needed after platform update.', type: 'Other', is_urgent: false, status: 'canceled', assigned_to: bob.id, created_by: admin.id },
-    { customer_name: 'Oscorp', description: 'Search results return duplicates when filtering by date.', type: 'Bug', is_urgent: false, status: 'to_be_worked', assigned_to: null, created_by: bob.id },
-    { customer_name: 'Weyland-Yutani', description: 'Improve loading speed of the analytics page.', type: 'Improvement', is_urgent: true, status: 'to_be_worked', assigned_to: carol.id, created_by: carol.id },
-    { customer_name: 'Soylent Corp', description: 'Apply hotfix for notification emails not sending.', type: 'Fixes', is_urgent: false, status: 'in_progress', assigned_to: bob.id, created_by: admin.id },
-  ]
+  // Create a project
+  const project = await prisma.project.create({
+    data: {
+      name: 'Website Redesign',
+      description: 'Full redesign of the company website',
+      created_by: admin.id,
+    },
+  })
 
-  for (const ticket of ticketData) {
-    await prisma.ticket.create({ data: ticket })
-  }
+  // Add members to project
+  await prisma.projectMember.createMany({
+    data: [
+      { project_id: project.id, user_id: admin.id, role: 'owner' },
+      { project_id: project.id, user_id: bob.id, role: 'member' },
+      { project_id: project.id, user_id: carol.id, role: 'member' },
+    ],
+  })
+
+  // Create columns
+  const [todo, inProgress, review, done] = await Promise.all([
+    prisma.column.create({ data: { project_id: project.id, name: 'To Do', order: 0 } }),
+    prisma.column.create({ data: { project_id: project.id, name: 'In Progress', order: 1 } }),
+    prisma.column.create({ data: { project_id: project.id, name: 'Review', order: 2 } }),
+    prisma.column.create({ data: { project_id: project.id, name: 'Done', order: 3 } }),
+  ])
+
+  // Create tasks
+  await prisma.task.createMany({
+    data: [
+      { project_id: project.id, column_id: todo.id, title: 'Design new homepage', priority: 'high', created_by: admin.id, order: 0 },
+      { project_id: project.id, column_id: todo.id, title: 'Write content for About page', priority: 'medium', created_by: admin.id, order: 1 },
+      { project_id: project.id, column_id: todo.id, title: 'Set up analytics', priority: 'low', created_by: bob.id, order: 2 },
+      { project_id: project.id, column_id: inProgress.id, title: 'Build navigation component', priority: 'high', assigned_to: bob.id, created_by: admin.id, order: 0 },
+      { project_id: project.id, column_id: inProgress.id, title: 'Implement mobile responsiveness', priority: 'urgent', assigned_to: carol.id, created_by: admin.id, order: 1 },
+      { project_id: project.id, column_id: review.id, title: 'Color palette selection', priority: 'medium', assigned_to: carol.id, created_by: admin.id, order: 0 },
+      { project_id: project.id, column_id: done.id, title: 'Project kickoff meeting', priority: 'medium', created_by: admin.id, order: 0 },
+      { project_id: project.id, column_id: done.id, title: 'Competitor analysis', priority: 'low', assigned_to: bob.id, created_by: admin.id, order: 1 },
+    ],
+  })
 
   console.log('Seed data created successfully!')
-  console.log(`  - 3 users (admin@example.com / Admin1234!, bob@example.com / Tech1234!, carol@example.com / Tech1234!)`)
-  console.log(`  - 10 tickets`)
+  console.log('  - 3 users: admin@example.com / Admin1234!, bob@example.com / Member1234!, carol@example.com / Member1234!')
+  console.log('  - 1 project with 4 columns and 8 tasks')
 }
 
 main()
