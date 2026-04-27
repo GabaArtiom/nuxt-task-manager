@@ -3,6 +3,8 @@
     :class="[
       'fixed top-0 left-0 z-40 h-screen bg-gray-900 text-white transition-all duration-300 flex flex-col',
       collapsed ? 'w-16' : 'w-60',
+      'md:translate-x-0',
+      mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
     ]"
   >
     <!-- Logo -->
@@ -123,7 +125,7 @@ const auth = useAuthStore()
 const route = useRoute()
 const { t } = useI18n()
 const collapsed = useState('sidebar-collapsed', () => false)
-const mobileOpen = ref(false)
+const mobileOpen = useState('sidebar-mobile-open', () => false)
 const projects = ref<any[]>([])
 
 onMounted(async () => {
