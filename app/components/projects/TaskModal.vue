@@ -1,87 +1,116 @@
 <template>
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" @click.self="$emit('close')">
-    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 w-full max-w-lg max-h-[90vh] overflow-y-auto">
-      <div class="flex items-center justify-between p-5 border-b border-gray-200 dark:border-gray-800">
-        <h3 class="font-heading font-semibold text-gray-900 dark:text-gray-100">{{ $t('tasks.edit') }}</h3>
-        <button class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" @click="$emit('close')">
+    <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 w-full max-w-4xl h-[85vh] flex flex-col overflow-hidden shadow-2xl">
+
+      <!-- Header: title + close -->
+      <div class="flex items-center gap-3 px-6 pt-5 pb-4 border-b border-gray-100 dark:border-gray-800">
+        <input
+          v-model="form.title"
+          class="flex-1 text-xl font-semibold text-gray-900 dark:text-gray-100 bg-transparent border-0 outline-none placeholder-gray-300 dark:placeholder-gray-600"
+          placeholder="Task title…"
+        />
+        <button
+          class="flex-shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+          @click="$emit('close')"
+        >
           <X class="w-5 h-5" />
         </button>
       </div>
 
-      <div class="p-5 space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ $t('tasks.title') }}</label>
-          <input
-            v-model="form.title"
-            type="text"
-            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
-          />
+      <!-- Body -->
+      <div class="flex flex-1 min-h-0">
+
+        <!-- Left: block editor -->
+        <div class="flex-1 overflow-y-auto px-6 py-4">
+          <BlockEditor v-model="form.description" />
         </div>
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ $t('tasks.description') }}</label>
-          <textarea
-            v-model="form.description"
-            rows="4"
-            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
-          />
-        </div>
+        <!-- Right: sidebar -->
+        <div class="w-56 flex-shrink-0 border-l border-gray-100 dark:border-gray-800 overflow-y-auto px-4 py-5 space-y-5">
 
-        <div class="grid grid-cols-2 gap-3">
+          <!-- Assignee -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ $t('tasks.priority') }}</label>
-            <select
-              v-model="form.priority"
-              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
-            >
-              <option value="low">{{ $t('tasks.priorityLow') }}</option>
-              <option value="medium">{{ $t('tasks.priorityMedium') }}</option>
-              <option value="high">{{ $t('tasks.priorityHigh') }}</option>
-              <option value="urgent">{{ $t('tasks.priorityUrgent') }}</option>
-            </select>
+            <div class="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-2">{{ $t('tasks.assignTo') }}</div>
+            <div class="space-y-0.5">
+              <button
+                :class="[
+                  'flex items-center gap-2 w-full px-2 py-1.5 rounded-lg text-sm transition-colors',
+                  !form.assigned_to
+                    ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800',
+                ]"
+                @click="form.assigned_to = ''"
+              >
+                <span class="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs text-gray-400 flex-shrink-0">—</span>
+                <span class="truncate text-xs">{{ $t('tasks.unassigned') }}</span>
+              </button>
+              <button
+                v-for="m in members"
+                :key="m.user_id"
+                :class="[
+                  'flex items-center gap-2 w-full px-2 py-1.5 rounded-lg transition-colors',
+                  form.assigned_to === m.user_id
+                    ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800',
+                ]"
+                @click="form.assigned_to = m.user_id"
+              >
+                <span class="w-6 h-6 rounded-full bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300 flex items-center justify-center text-xs font-semibold flex-shrink-0">
+                  {{ initials(m.user) }}
+                </span>
+                <span class="truncate text-xs">{{ m.user.name }} {{ m.user.family_name }}</span>
+              </button>
+            </div>
           </div>
 
+          <!-- Priority -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ $t('tasks.dueDate') }}</label>
+            <div class="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-2">{{ $t('tasks.priority') }}</div>
+            <div class="grid grid-cols-2 gap-1">
+              <button
+                v-for="p in PRIORITIES"
+                :key="p.value"
+                :class="[
+                  'px-2 py-1.5 rounded-lg text-xs font-medium transition-colors text-center',
+                  form.priority === p.value
+                    ? p.activeClass
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700',
+                ]"
+                @click="form.priority = p.value"
+              >
+                {{ p.label }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Due date -->
+          <div>
+            <div class="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-2">{{ $t('tasks.dueDate') }}</div>
             <input
               v-model="form.due_date"
               type="date"
-              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
+              class="w-full px-2.5 py-1.5 text-xs border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500"
             />
           </div>
-        </div>
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ $t('tasks.assignTo') }}</label>
-          <select
-            v-model="form.assigned_to"
-            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
-          >
-            <option value="">{{ $t('tasks.unassigned') }}</option>
-            <option v-for="m in members" :key="m.user_id" :value="m.user_id">
-              {{ m.user.name }} {{ m.user.family_name }}
-            </option>
-          </select>
-        </div>
+          <!-- Created by -->
+          <div>
+            <div class="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-2">{{ $t('tasks.createdBy') }}</div>
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-semibold text-gray-500 flex-shrink-0">
+                {{ task.creator ? initials(task.creator) : '?' }}
+              </span>
+              <span class="text-xs text-gray-600 dark:text-gray-400 truncate">{{ task.creator?.name }} {{ task.creator?.family_name }}</span>
+            </div>
+          </div>
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Column</label>
-          <select
-            v-model="form.column_id"
-            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
-          >
-            <option v-for="col in columns" :key="col.id" :value="col.id">{{ col.name }}</option>
-          </select>
-        </div>
-
-        <div class="text-xs text-gray-400 dark:text-gray-600 pt-1">
-          {{ $t('tasks.createdBy') }}: {{ task.creator?.name }} {{ task.creator?.family_name }}
         </div>
       </div>
 
-      <div class="flex gap-3 p-5 border-t border-gray-200 dark:border-gray-800">
+      <!-- Footer -->
+      <div class="flex items-center gap-3 px-6 py-4 border-t border-gray-100 dark:border-gray-800">
         <button
-          class="flex items-center gap-1.5 px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950 rounded-lg transition-colors"
+          class="flex items-center gap-1.5 px-3 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-950/50 rounded-lg transition-colors"
           @click="$emit('deleted', task.id)"
         >
           <Trash2 class="w-4 h-4" />
@@ -89,7 +118,7 @@
         </button>
         <div class="flex-1" />
         <button
-          class="px-4 py-2 border border-gray-300 dark:border-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300"
+          class="px-4 py-2 border border-gray-200 dark:border-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-gray-600 dark:text-gray-400"
           @click="$emit('close')"
         >
           {{ $t('common.cancel') }}
@@ -102,6 +131,7 @@
           {{ saving ? $t('common.loading') : $t('common.save') }}
         </button>
       </div>
+
     </div>
   </div>
 </template>
@@ -109,6 +139,7 @@
 <script setup lang="ts">
 import { X, Trash2 } from 'lucide-vue-next'
 import { format } from 'date-fns'
+import BlockEditor from './BlockEditor.vue'
 
 const props = defineProps<{
   task: any
@@ -124,6 +155,17 @@ const emit = defineEmits<{
   deleted: [taskId: string]
 }>()
 
+const PRIORITIES = [
+  { value: 'low', label: 'Low', activeClass: 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300' },
+  { value: 'medium', label: 'Medium', activeClass: 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300' },
+  { value: 'high', label: 'High', activeClass: 'bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300' },
+  { value: 'urgent', label: 'Urgent', activeClass: 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300' },
+]
+
+function initials(user: { name?: string; family_name?: string }): string {
+  return ((user.name?.[0] ?? '') + (user.family_name?.[0] ?? '')).toUpperCase() || '?'
+}
+
 const saving = ref(false)
 const form = reactive({
   title: props.task.title,
@@ -131,7 +173,6 @@ const form = reactive({
   priority: props.task.priority,
   assigned_to: props.task.assigned_to ?? '',
   due_date: props.task.due_date ? format(new Date(props.task.due_date), 'yyyy-MM-dd') : '',
-  column_id: props.task.column_id,
 })
 
 async function save() {
