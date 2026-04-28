@@ -5,12 +5,14 @@ export default defineEventHandler(async (event) => {
   const user = await requireAuth(event)
   const id = getRouterParam(event, 'id')!
 
-  const member = await prisma.projectMember.findUnique({
-    where: { project_id_user_id: { project_id: id, user_id: user.id } },
-  })
+  if (user.role !== 'super_admin') {
+    const member = await prisma.projectMember.findUnique({
+      where: { project_id_user_id: { project_id: id, user_id: user.id } },
+    })
 
-  if (!member || member.role !== 'owner') {
-    throw createError({ statusCode: 403, statusMessage: 'Only project owner can delete' })
+    if (!member || member.role !== 'owner') {
+      throw createError({ statusCode: 403, statusMessage: 'Only project owner can delete' })
+    }
   }
 
   await prisma.project.delete({ where: { id } })

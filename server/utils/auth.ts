@@ -65,7 +65,7 @@ export async function requireAuth(event: H3Event) {
 
 export async function requireAdmin(event: H3Event) {
   const user = await requireAuth(event)
-  if (user.role !== 'admin') {
+  if (user.role !== 'admin' && user.role !== 'super_admin') {
     throw createError({ statusCode: 403, statusMessage: 'Forbidden' })
   }
   return user

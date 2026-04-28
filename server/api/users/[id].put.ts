@@ -24,6 +24,12 @@ export default defineEventHandler(async (event) => {
       data.email = email
     }
   }
+  if (body.role !== undefined) {
+    if (!['super_admin', 'admin', 'member'].includes(body.role)) {
+      throw createError({ statusCode: 400, statusMessage: 'Invalid role' })
+    }
+    data.role = body.role
+  }
 
   const updated = await prisma.user.update({
     where: { id },

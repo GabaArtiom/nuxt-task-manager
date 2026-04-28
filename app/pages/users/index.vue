@@ -38,8 +38,8 @@
             </td>
             <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{{ user.email }}</td>
             <td class="px-6 py-4">
-              <span :class="['inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium', user.role === 'admin' ? 'bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-200' : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300']">
-                {{ user.role }}
+              <span :class="['inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium', user.role === 'super_admin' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' : user.role === 'admin' ? 'bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-200' : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300']">
+                {{ $t(`users.${user.role}`) }}
               </span>
             </td>
             <td class="px-6 py-4">
@@ -90,6 +90,7 @@
               <select v-model="addForm.role" required class="input">
                 <option value="member">{{ $t('users.member') }}</option>
                 <option value="admin">{{ $t('users.admin') }}</option>
+                <option value="super_admin">{{ $t('users.super_admin') }}</option>
               </select>
             </div>
             <p v-if="addError" class="text-sm text-red-600">{{ addError }}</p>
@@ -122,6 +123,14 @@
             <div>
               <label class="label">{{ $t('users.email') }}</label>
               <input v-model="editForm.email" type="email" required class="input" />
+            </div>
+            <div>
+              <label class="label">{{ $t('users.role') }}</label>
+              <select v-model="editForm.role" class="input">
+                <option value="member">{{ $t('users.member') }}</option>
+                <option value="admin">{{ $t('users.admin') }}</option>
+                <option value="super_admin">{{ $t('users.super_admin') }}</option>
+              </select>
             </div>
             <p v-if="editError" class="text-sm text-red-600">{{ editError }}</p>
             <button type="submit" class="w-full px-4 py-2.5 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors disabled:opacity-50" :disabled="editLoading">
@@ -176,9 +185,9 @@ const showEditModal = ref(false)
 const editUser = ref<User | null>(null)
 const editLoading = ref(false)
 const editError = ref('')
-const editForm = reactive({ name: '', family_name: '', email: '' })
+const editForm = reactive({ name: '', family_name: '', email: '', role: 'member' as string })
 
-watch(editUser, (u) => { if (u) { editForm.name = u.name; editForm.family_name = u.family_name; editForm.email = u.email } })
+watch(editUser, (u) => { if (u) { editForm.name = u.name; editForm.family_name = u.family_name; editForm.email = u.email; editForm.role = u.role } })
 
 async function handleEditUser() {
   if (!editUser.value) return

@@ -6,7 +6,7 @@ export default defineEventHandler(async (event) => {
   const id = getRouterParam(event, 'id')!
 
   const project = await prisma.project.findFirst({
-    where: {
+    where: user.role === 'super_admin' ? { id } : {
       id,
       members: { some: { user_id: user.id } },
     },

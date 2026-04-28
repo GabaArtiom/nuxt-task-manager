@@ -10,8 +10,8 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Name, family name, and email are required' })
   }
 
-  if (!['admin', 'technician'].includes(body.role)) {
-    throw createError({ statusCode: 400, statusMessage: 'Role must be admin or technician' })
+  if (!['super_admin', 'admin', 'member'].includes(body.role)) {
+    throw createError({ statusCode: 400, statusMessage: 'Role must be super_admin, admin, or member' })
   }
 
   const existing = await prisma.user.findUnique({ where: { email: body.email } })

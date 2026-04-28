@@ -5,7 +5,7 @@ export default defineEventHandler(async (event) => {
   const user = await requireAuth(event)
 
   const projects = await prisma.project.findMany({
-    where: {
+    where: user.role === 'super_admin' ? {} : {
       members: { some: { user_id: user.id } },
     },
     include: {
