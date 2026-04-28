@@ -18,7 +18,7 @@
           class="px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex items-center gap-2"
         >
           <Languages class="w-4 h-4" />
-          <span>{{ locale === 'en' ? 'English' : 'Italiano' }}</span>
+          <span>{{ locale === 'en' ? 'English' : 'Русский' }}</span>
           <ChevronDown class="w-3 h-3" />
         </button>
 
@@ -42,12 +42,12 @@
               <Check v-if="locale === 'en'" class="w-4 h-4" />
             </button>
             <button
-              @click="setLocale('it'); langDropdownOpen = false"
+              @click="setLocale('ru'); langDropdownOpen = false"
               class="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center justify-between"
-              :class="locale === 'it' && 'bg-primary-50 dark:bg-primary-950/20 text-primary-600 dark:text-primary-400'"
+              :class="locale === 'ru' && 'bg-primary-50 dark:bg-primary-950/20 text-primary-600 dark:text-primary-400'"
             >
-              <span>Italiano</span>
-              <Check v-if="locale === 'it'" class="w-4 h-4" />
+              <span>Русский</span>
+              <Check v-if="locale === 'ru'" class="w-4 h-4" />
             </button>
           </div>
         </Teleport>
