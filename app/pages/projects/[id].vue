@@ -281,8 +281,11 @@ const confirmDialog = ref<any>(null)
 const draggingTaskId = ref<string | null>(null)
 
 const isOwner = computed(() =>
+  auth.isSuperAdmin ||
   project.value?.members?.some((m: any) => m.user_id === auth.user?.id && m.role === 'owner')
 )
+
+useRealtimeProject(projectId, project)
 
 onMounted(loadProject)
 

@@ -1,5 +1,6 @@
 import { prisma } from '~~/server/utils/db'
 import { requireAuth } from '~~/server/utils/auth'
+import { broadcastToProject } from '~~/server/utils/broadcast'
 
 export default defineEventHandler(async (event) => {
   const user = await requireAuth(event)
@@ -15,6 +16,8 @@ export default defineEventHandler(async (event) => {
   }
 
   await prisma.task.delete({ where: { id: taskId } })
+
+  broadcastToProject(projectId, 'task:deleted', { task_id: taskId, triggered_by: user.id })
 
   return { success: true }
 })
