@@ -1,6 +1,19 @@
 import { prisma } from '~~/server/utils/db'
 import { requireAuth } from '~~/server/utils/auth'
 import { broadcastToProject } from '~~/server/utils/broadcast'
+import { randomUUID } from 'node:crypto'
+
+function normalizeChecklist(value: unknown) {
+  if (!Array.isArray(value)) return []
+  return value
+    .filter((item) => item && typeof item === 'object')
+    .map((item: any) => ({
+      id: String(item.id || randomUUID()),
+      title: String(item.title || '').trim(),
+      checked: Boolean(item.checked),
+    }))
+    .filter((item) => item.title.length > 0)
+}
 
 export default defineEventHandler(async (event) => {
   const user = await requireAuth(event)
@@ -25,6 +38,7 @@ export default defineEventHandler(async (event) => {
       ...(body.column_id !== undefined && { column_id: body.column_id }),
       ...(body.assigned_to !== undefined && { assigned_to: body.assigned_to || null }),
       ...(body.due_date !== undefined && { due_date: body.due_date ? new Date(body.due_date) : null }),
+      ...(body.checklist !== undefined && { checklist: normalizeChecklist(body.checklist) }),
       ...(body.order !== undefined && { order: body.order }),
     },
     include: {

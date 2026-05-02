@@ -185,5 +185,13 @@
     "assignedToYou": "Sei stato assegnato a: {customer}",
     "newTicket": "Nuovo ticket: {customer}",
     "urgentTicket": "Ticket urgente: {customer}"
+  },
+  "tasks": {
+    "checklist": "Checklist",
+    "addChecklistItem": "Aggiungi elemento",
+    "checklistItemPlaceholder": "Elemento checklist",
+    "emptyChecklist": "Aggiungi un elemento checklist",
+    "noChecklistItems": "Nessun elemento checklist",
+    "checklistProgress": "{completed} di {total} completati"
   }
 }

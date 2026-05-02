@@ -76,6 +76,7 @@ model Task {
   column_id   String
   title       String
   description String?   @db.Text
+  checklist   Json?
   priority    String    @default("medium") // 'low' | 'medium' | 'high' | 'urgent'
   assigned_to String?
   created_by  String

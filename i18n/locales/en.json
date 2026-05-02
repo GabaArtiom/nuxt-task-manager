@@ -85,7 +85,13 @@
     "delete": "Delete Task",
     "deleteConfirm": "Are you sure you want to delete this task?",
     "createdBy": "Created by",
-    "assignedTo": "Assigned to"
+    "assignedTo": "Assigned to",
+    "checklist": "Checklist",
+    "addChecklistItem": "Add checklist item",
+    "checklistItemPlaceholder": "Checklist item",
+    "emptyChecklist": "Add a checklist item",
+    "noChecklistItems": "No checklist items",
+    "checklistProgress": "{completed} of {total} complete"
   },
   "users": {
     "title": "User Management",

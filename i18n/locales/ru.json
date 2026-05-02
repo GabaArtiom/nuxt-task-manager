@@ -85,7 +85,13 @@
     "delete": "Удалить задачу",
     "deleteConfirm": "Вы уверены, что хотите удалить эту задачу?",
     "createdBy": "Создал",
-    "assignedTo": "Исполнитель"
+    "assignedTo": "Исполнитель",
+    "checklist": "Чеклист",
+    "addChecklistItem": "Добавить пункт",
+    "checklistItemPlaceholder": "Название пункта",
+    "emptyChecklist": "Добавить пункт чеклиста",
+    "noChecklistItems": "Пунктов пока нет",
+    "checklistProgress": "{completed} из {total} выполнено"
   },
   "users": {
     "title": "Управление пользователями",
