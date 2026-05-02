@@ -1,15 +1,15 @@
 <template>
-  <header class="sticky top-0 z-20 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 h-16 flex items-center justify-between">
-    <div class="flex items-center gap-3">
+  <header class="sticky top-0 z-20 h-16 w-full min-w-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 flex items-center gap-4">
+    <div class="min-w-0 flex-1 flex items-center gap-3">
       <button
-        class="md:hidden p-1.5 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+        class="md:hidden flex-shrink-0 p-1.5 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
         @click="toggleSidebar"
       >
         <Menu class="w-5 h-5" />
       </button>
-      <h1 class="text-lg font-heading font-semibold text-gray-900 dark:text-gray-100">{{ pageTitle }}</h1>
+      <h1 class="min-w-0 truncate text-lg font-heading font-semibold text-gray-900 dark:text-gray-100">{{ pageTitle }}</h1>
     </div>
-    <div class="flex items-center gap-3">
+    <div class="flex flex-shrink-0 items-center justify-end gap-3">
       <!-- Language switcher -->
       <div class="relative">
         <button
