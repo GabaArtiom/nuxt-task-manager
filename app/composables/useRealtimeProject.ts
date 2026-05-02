@@ -97,8 +97,11 @@ export function useRealtimeProject(projectId: string, project: Ref<any>) {
       }
 
       case 'member:added': {
-        if (!p.members.find((m: any) => m.user_id === data.member.user_id)) {
+        const idx = p.members.findIndex((m: any) => m.user_id === data.member.user_id)
+        if (idx === -1) {
           p.members.push(data.member)
+        } else {
+          p.members[idx] = { ...p.members[idx], ...data.member }
         }
         break
       }

@@ -41,7 +41,7 @@
           <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">{{ $t('projects.members') }}</h4>
           <div class="space-y-2 mb-3">
             <div
-              v-for="m in project.members"
+              v-for="m in uniqueMembers"
               :key="m.user_id"
               class="flex items-center justify-between py-2 px-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
             >
@@ -178,6 +178,15 @@ const form = reactive({
 
 const memberIds = computed(() => new Set(props.project.members.map((m: any) => m.user_id)))
 
+const uniqueMembers = computed(() => {
+  const seen = new Set<string>()
+  return props.project.members.filter((member: any) => {
+    if (seen.has(member.user_id)) return false
+    seen.add(member.user_id)
+    return true
+  })
+})
+
 const filteredUsers = computed(() => {
   const q = searchQuery.value.toLowerCase().trim()
   return allUsers.value.filter((u) => {
@@ -234,7 +243,7 @@ async function addMember() {
       method: 'POST',
       body: { user_id: selectedUserId.value },
     })
-    props.project.members.push(member)
+    upsertMember(member)
     searchQuery.value = ''
     selectedUserId.value = ''
   } catch (e: any) {
@@ -246,6 +255,12 @@ async function removeMember(userId: string) {
   await $fetch(`/api/projects/${props.project.id}/members/${userId}`, { method: 'DELETE' })
   const idx = props.project.members.findIndex((m: any) => m.user_id === userId)
   if (idx !== -1) props.project.members.splice(idx, 1)
+}
+
+function upsertMember(member: any) {
+  const idx = props.project.members.findIndex((m: any) => m.user_id === member.user_id)
+  if (idx === -1) props.project.members.push(member)
+  else props.project.members[idx] = { ...props.project.members[idx], ...member }
 }
 
 async function deleteProject() {
