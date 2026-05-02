@@ -131,6 +131,11 @@
 
                 <p class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">{{ task.title }}</p>
 
+                <div v-if="checklistStats(task).total" class="mb-2 inline-flex items-center gap-1.5 rounded-md bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+                  <CheckSquare class="w-3.5 h-3.5" />
+                  <span>{{ checklistStats(task).completed }}/{{ checklistStats(task).total }}</span>
+                </div>
+
                 <div class="flex items-center justify-between">
                   <div v-if="task.assignee" class="flex items-center gap-1.5">
                     <div class="w-5 h-5 rounded-full bg-primary-600 flex items-center justify-center text-white text-[10px] font-medium uppercase">
@@ -251,7 +256,7 @@
 </template>
 
 <script setup lang="ts">
-import { ArrowLeft, Plus, Pencil, Trash2, X, Settings } from 'lucide-vue-next'
+import { ArrowLeft, Plus, Pencil, Trash2, X, Settings, CheckSquare } from 'lucide-vue-next'
 import { format } from 'date-fns'
 import { useAuthStore } from '~/stores/auth'
 import { Container, Draggable } from 'vue3-smooth-dnd'
@@ -442,6 +447,14 @@ function priorityLabel(priority: string) {
 
 function formatDate(date: string) {
   return format(new Date(date), 'MMM d')
+}
+
+function checklistStats(task: any) {
+  const items = Array.isArray(task.checklist) ? task.checklist : []
+  return {
+    total: items.length,
+    completed: items.filter((item: any) => item?.checked).length,
+  }
 }
 
 watch(showAddColumn, async (val) => {

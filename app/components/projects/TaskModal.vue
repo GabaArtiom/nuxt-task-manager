@@ -313,9 +313,14 @@
         <div class="flex-1" />
         <span
           :class="[
-            'text-xs font-medium',
-            autosaveState === 'error' ? 'text-red-500' : 'text-gray-400',
+            'rounded-md px-2 py-1 text-xs font-medium transition-colors',
+            autosaveState === 'error'
+              ? 'bg-red-50 text-red-500 dark:bg-red-950/30 dark:text-red-300'
+              : autosaveState === 'saving'
+                ? 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-300'
+                : 'text-gray-400',
           ]"
+          :title="autosaveError || autosaveLabel"
         >
           {{ autosaveLabel }}
         </span>
@@ -397,6 +402,7 @@ function initials(user: { name?: string; family_name?: string }): string {
 }
 
 const autosaveState = ref<'idle' | 'saving' | 'saved' | 'error'>('idle')
+const autosaveError = ref('')
 const editingChecklistItemId = ref<string | null>(null)
 const showDeleteConfirm = ref(false)
 const descriptionEditing = ref(false)
@@ -424,7 +430,7 @@ const checklistSummary = computed(() => {
 const autosaveLabel = computed(() => {
   if (autosaveState.value === 'saving') return t('common.loading')
   if (autosaveState.value === 'saved') return t('common.saved')
-  if (autosaveState.value === 'error') return t('common.error')
+  if (autosaveState.value === 'error') return t('common.notSaved')
   return t('common.autosave')
 })
 
@@ -615,6 +621,7 @@ function taskPayload() {
 }
 
 function scheduleAutosave() {
+  autosaveError.value = ''
   autosaveState.value = 'idle'
   if (autosaveTimer) clearTimeout(autosaveTimer)
   autosaveTimer = setTimeout(() => {
@@ -628,6 +635,7 @@ async function saveTaskNow() {
     autosaveTimer = null
   }
   autosaveState.value = 'saving'
+  autosaveError.value = ''
   try {
     const updated = await $fetch<any>(`/api/projects/${props.projectId}/tasks/${props.task.id}`, {
       method: 'PUT',
@@ -638,7 +646,8 @@ async function saveTaskNow() {
     setTimeout(() => {
       if (autosaveState.value === 'saved') autosaveState.value = 'idle'
     }, 1600)
-  } catch {
+  } catch (error: any) {
+    autosaveError.value = error?.data?.statusMessage || error?.message || t('common.error')
     autosaveState.value = 'error'
   }
 }

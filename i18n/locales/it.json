@@ -180,7 +180,8 @@
     "saved": "Salvato",
     "autosave": "Salvataggio automatico",
     "done": "Fatto",
-    "download": "Scarica"
+    "download": "Scarica",
+    "notSaved": "Non salvato"
   },
   "theme": {
     "light": "Chiaro",
