@@ -128,7 +128,10 @@
     "loading": "Loading...",
     "error": "Error",
     "success": "Success",
-    "back": "Back"
+    "back": "Back",
+    "close": "Close",
+    "saved": "Saved",
+    "autosave": "Autosaves"
   },
   "theme": {
     "light": "Light",

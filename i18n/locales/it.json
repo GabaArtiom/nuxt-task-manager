@@ -175,7 +175,10 @@
     "error": "Errore",
     "success": "Successo",
     "confirmDelete": "Sei sicuro di voler eliminare questo ticket?",
-    "back": "Indietro"
+    "back": "Indietro",
+    "close": "Chiudi",
+    "saved": "Salvato",
+    "autosave": "Salvataggio automatico"
   },
   "theme": {
     "light": "Chiaro",

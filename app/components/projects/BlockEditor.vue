@@ -1,18 +1,9 @@
 <template>
   <div class="block-editor-root relative" @click.self="handleRootClick">
     <div v-for="(block, index) in blocks" :key="block.id" class="flex items-start py-0.5">
-      <!-- Checkbox for todo -->
-      <label v-if="block.type === 'todo'" class="flex-shrink-0 mt-[3px] mr-2 cursor-pointer" @mousedown.prevent>
-        <input
-          type="checkbox"
-          :checked="block.checked"
-          class="w-4 h-4 rounded accent-primary-500 cursor-pointer"
-          @change="toggleTodo(index)"
-        />
-      </label>
       <!-- Bullet dot -->
       <span
-        v-else-if="block.type === 'bullet'"
+        v-if="block.type === 'bullet'"
         class="flex-shrink-0 mt-[9px] mr-2 w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-gray-500"
       />
 
@@ -39,7 +30,6 @@
           block.type === 'h3' && 'text-base font-semibold text-gray-800 dark:text-gray-200',
           (block.type === 'text' || block.type === 'bullet' || block.type === 'todo') &&
             'text-sm text-gray-700 dark:text-gray-300 leading-relaxed',
-          block.type === 'todo' && block.checked && 'line-through opacity-50',
         ]"
         spellcheck="false"
         @input="onInput(index, $event)"
@@ -97,7 +87,6 @@ const COMMANDS: { type: BlockType; icon: string; label: string; hint: string }[]
   { type: 'h2', icon: 'H2', label: 'Заголовок 2', hint: 'Средний заголовок' },
   { type: 'h3', icon: 'H3', label: 'Заголовок 3', hint: 'Маленький заголовок' },
   { type: 'bullet', icon: '•', label: 'Список', hint: 'Маркированный список' },
-  { type: 'todo', icon: '☐', label: 'Задача', hint: 'Чекбокс' },
   { type: 'code', icon: '</>', label: 'Код', hint: 'Блок кода' },
 ]
 
@@ -208,14 +197,14 @@ function onKeydown(index: number, event: KeyboardEvent) {
     event.preventDefault()
     const el = blockRefs.value[index]
     const isEmpty = !el?.textContent?.trim()
-    // Empty bullet/todo → break out of list, create plain text block and remove this empty one
-    if (isEmpty && (block.type === 'bullet' || block.type === 'todo')) {
+    // Empty bullet -> break out of list, create plain text block and remove this empty one
+    if (isEmpty && block.type === 'bullet') {
       blocks.value.splice(index, 1, { id: uid(), type: 'text', content: '' })
       emitUpdate()
       nextTick(() => focusBlock(index, 'start'))
       return
     }
-    const next: BlockType = block.type === 'bullet' || block.type === 'todo' ? block.type : 'text'
+    const next: BlockType = block.type === 'bullet' ? 'bullet' : 'text'
     addBlockAfter(index, next)
     return
   }
@@ -262,14 +251,8 @@ function onPaste(index: number, event: ClipboardEvent) {
   emitUpdate()
 }
 
-function toggleTodo(index: number) {
-  const block = blocks.value[index]
-  if (block) block.checked = !block.checked
-  emitUpdate()
-}
-
 async function addBlockAfter(index: number, type: BlockType = 'text') {
-  blocks.value.splice(index + 1, 0, { id: uid(), type, content: '', checked: false })
+  blocks.value.splice(index + 1, 0, { id: uid(), type, content: '' })
   emitUpdate()
   await nextTick()
   focusBlock(index + 1, 'start')
@@ -334,7 +317,6 @@ function getPlaceholder(block: Block, index: number): string {
   if (block.type === 'h1') return 'Заголовок 1'
   if (block.type === 'h2') return 'Заголовок 2'
   if (block.type === 'h3') return 'Заголовок 3'
-  if (block.type === 'todo') return 'Задача'
   if (block.type === 'bullet') return 'Пункт списка'
   if (index === 0) return "Напишите что-нибудь или введите '/' для выбора типа блока…"
   return ''
