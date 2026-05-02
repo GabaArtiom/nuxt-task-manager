@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import { mkdir, writeFile } from 'node:fs/promises'
-import { extname, join } from 'node:path'
+import { basename, join } from 'node:path'
 import { prisma } from '~~/server/utils/db'
 import { requireAuth } from '~~/server/utils/auth'
 import { broadcastToProject } from '~~/server/utils/broadcast'
@@ -29,9 +29,9 @@ function normalizeAttachments(value: unknown): Attachment[] {
     .filter((item) => item.name && item.url)
 }
 
-function safeFilename(name: string) {
-  const base = name.trim().replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/^-+|-+$/g, '')
-  return base || 'file'
+function safeStoredFilename(id: string, name: string) {
+  const safeName = basename(name).trim().replace(/[<>:"/\\|?*\u0000-\u001F]+/g, '-').replace(/^-+|-+$/g, '')
+  return `${id}-${safeName || 'file'}`
 }
 
 export default defineEventHandler(async (event) => {
@@ -71,13 +71,14 @@ export default defineEventHandler(async (event) => {
   for (const file of files) {
     const original = file.filename || 'file'
     const id = randomUUID()
-    const filename = `${id}${extname(original)}`
+    const filename = safeStoredFilename(id, original)
     await writeFile(join(uploadDir, filename), file.data)
 
     uploaded.push({
       id,
-      name: safeFilename(original),
+      name: original,
       url: `/uploads/tasks/${taskId}/${filename}`,
+      download_url: `/api/projects/${projectId}/tasks/${taskId}/attachments/${id}`,
       size: file.data.length,
       type: file.type || 'application/octet-stream',
       uploaded_at: new Date().toISOString(),

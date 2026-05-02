@@ -17,20 +17,20 @@
 
       <div class="flex flex-1 min-h-0">
         <div class="flex-1 min-w-0 flex flex-col">
-          <div class="flex-1 min-h-0 overflow-y-auto px-6 py-4">
+          <div ref="descriptionAreaRef" class="flex-1 min-h-0 overflow-y-auto px-6 py-4">
             <div class="mb-3 flex items-center justify-between gap-3">
               <div class="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">{{ $t('tasks.description') }}</div>
               <button
                 type="button"
                 class="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200 transition-colors"
-                @click="descriptionEditing = !descriptionEditing"
+                @click="toggleDescriptionEditing"
               >
                 <Pencil class="w-3.5 h-3.5" />
                 {{ descriptionEditing ? $t('common.done') : $t('tasks.edit') }}
               </button>
             </div>
 
-            <BlockEditor v-if="descriptionEditing" v-model="form.description" />
+            <BlockEditor v-if="descriptionEditing" ref="blockEditorRef" v-model="form.description" />
             <div v-else class="min-h-[160px] cursor-default rounded-lg py-1">
               <div v-if="descriptionBlocks.length" class="space-y-2">
                 <component
@@ -187,14 +187,24 @@
                 >
                   <FileText class="w-4 h-4 flex-shrink-0 text-gray-400" />
                   <a
-                    :href="file.url"
+                    :href="downloadUrl(file)"
                     target="_blank"
                     rel="noopener noreferrer"
+                    download
                     class="min-w-0 flex-1 truncate text-sm text-gray-800 hover:text-primary-600 dark:text-gray-200 dark:hover:text-primary-400"
                   >
                     {{ file.name }}
                   </a>
                   <span class="text-xs text-gray-400">{{ formatFileSize(file.size) }}</span>
+                  <a
+                    :href="downloadUrl(file)"
+                    download
+                    class="flex-shrink-0 rounded-md p-1 text-gray-400 opacity-0 transition group-hover:opacity-100 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-200"
+                    :title="$t('common.download')"
+                    @click.stop
+                  >
+                    <Download class="w-3.5 h-3.5" />
+                  </a>
                   <button
                     type="button"
                     class="flex-shrink-0 rounded-md p-1 text-gray-400 opacity-0 transition group-hover:opacity-100 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/40"
@@ -332,7 +342,7 @@
 </template>
 
 <script setup lang="ts">
-import { X, Trash2, Plus, Check, Pencil, Paperclip, FileText } from 'lucide-vue-next'
+import { X, Trash2, Plus, Check, Pencil, Paperclip, FileText, Download } from 'lucide-vue-next'
 import { format } from 'date-fns'
 import BlockEditor from './BlockEditor.vue'
 import ConfirmDialog from '~/components/ConfirmDialog.vue'
@@ -370,6 +380,7 @@ interface Attachment {
   id: string
   name: string
   url: string
+  download_url?: string
   size: number
   type: string
   uploaded_at: string
@@ -391,6 +402,8 @@ const showDeleteConfirm = ref(false)
 const descriptionEditing = ref(false)
 const attachmentUploading = ref(false)
 const fileInputRef = ref<HTMLInputElement | null>(null)
+const descriptionAreaRef = ref<HTMLElement | null>(null)
+const blockEditorRef = ref<any>(null)
 let autosaveTimer: ReturnType<typeof setTimeout> | null = null
 const form = reactive({
   title: props.task.title,
@@ -442,6 +455,7 @@ function normalizeAttachments(value: unknown): Attachment[] {
       id: String(item.id || uid()),
       name: String(item.name || ''),
       url: String(item.url || ''),
+      download_url: item.download_url ? String(item.download_url) : undefined,
       size: Number(item.size || 0),
       type: String(item.type || ''),
       uploaded_at: String(item.uploaded_at || new Date().toISOString()),
@@ -512,6 +526,16 @@ async function addChecklistItem() {
   await editChecklistItem(item.id)
 }
 
+async function toggleDescriptionEditing() {
+  descriptionEditing.value = !descriptionEditing.value
+  if (descriptionEditing.value) await focusDescriptionEditor()
+}
+
+async function focusDescriptionEditor() {
+  await nextTick()
+  blockEditorRef.value?.focusLastBlock?.()
+}
+
 async function editChecklistItem(itemId: string) {
   editingChecklistItemId.value = itemId
   await nextTick()
@@ -574,6 +598,10 @@ function formatFileSize(size: number) {
   return `${(size / (1024 * 1024)).toFixed(1)} MB`
 }
 
+function downloadUrl(file: Attachment) {
+  return file.download_url || `/api/projects/${props.projectId}/tasks/${props.task.id}/attachments/${file.id}`
+}
+
 function taskPayload() {
   return {
     title: form.title,
@@ -631,6 +659,18 @@ watch(
 
 onBeforeUnmount(() => {
   if (autosaveTimer) saveTaskNow()
+  document.removeEventListener('pointerdown', onDocumentPointerDown)
+})
+
+function onDocumentPointerDown(event: PointerEvent) {
+  if (!descriptionEditing.value) return
+  const target = event.target as Node | null
+  if (target && descriptionAreaRef.value?.contains(target)) return
+  descriptionEditing.value = false
+}
+
+onMounted(() => {
+  document.addEventListener('pointerdown', onDocumentPointerDown)
 })
 
 function confirmDelete() {

@@ -328,6 +328,10 @@ function onDocumentClick() {
 
 onMounted(() => document.addEventListener('click', onDocumentClick))
 onUnmounted(() => document.removeEventListener('click', onDocumentClick))
+
+defineExpose({
+  focusLastBlock: handleRootClick,
+})
 </script>
 
 <style scoped>
