@@ -15,6 +15,21 @@ function normalizeChecklist(value: unknown) {
     .filter((item) => item.title.length > 0)
 }
 
+function normalizeAttachments(value: unknown) {
+  if (!Array.isArray(value)) return undefined
+  return value
+    .filter((item) => item && typeof item === 'object')
+    .map((item: any) => ({
+      id: String(item.id || randomUUID()),
+      name: String(item.name || '').trim(),
+      url: String(item.url || ''),
+      size: Number(item.size || 0),
+      type: String(item.type || ''),
+      uploaded_at: String(item.uploaded_at || new Date().toISOString()),
+    }))
+    .filter((item) => item.name && item.url)
+}
+
 export default defineEventHandler(async (event) => {
   const user = await requireAuth(event)
   const projectId = getRouterParam(event, 'id')!
@@ -51,6 +66,7 @@ export default defineEventHandler(async (event) => {
       assigned_to: body.assigned_to || null,
       due_date: body.due_date ? new Date(body.due_date) : null,
       checklist: normalizeChecklist(body.checklist) ?? undefined,
+      attachments: normalizeAttachments(body.attachments) ?? undefined,
       created_by: user.id,
       order: (lastTask?.order ?? -1) + 1,
     },

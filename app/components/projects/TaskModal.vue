@@ -18,7 +18,51 @@
       <div class="flex flex-1 min-h-0">
         <div class="flex-1 min-w-0 flex flex-col">
           <div class="flex-1 min-h-0 overflow-y-auto px-6 py-4">
-            <BlockEditor v-model="form.description" />
+            <div class="mb-3 flex items-center justify-between gap-3">
+              <div class="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">{{ $t('tasks.description') }}</div>
+              <button
+                type="button"
+                class="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200 transition-colors"
+                @click="descriptionEditing = !descriptionEditing"
+              >
+                <Pencil class="w-3.5 h-3.5" />
+                {{ descriptionEditing ? $t('common.done') : $t('tasks.edit') }}
+              </button>
+            </div>
+
+            <BlockEditor v-if="descriptionEditing" v-model="form.description" />
+            <div v-else class="min-h-[160px] cursor-default rounded-lg py-1">
+              <div v-if="descriptionBlocks.length" class="space-y-2">
+                <component
+                  :is="descriptionTag(block.type)"
+                  v-for="block in descriptionBlocks"
+                  :key="block.id"
+                  :class="descriptionClass(block.type)"
+                >
+                  <template v-for="(segment, index) in linkSegments(block.content)" :key="`${block.id}-${index}`">
+                    <a
+                      v-if="segment.href"
+                      :href="segment.href"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="text-primary-600 underline decoration-primary-400/50 underline-offset-2 hover:text-primary-500 dark:text-primary-400"
+                      @click.stop
+                    >
+                      {{ segment.text }}
+                    </a>
+                    <span v-else>{{ segment.text }}</span>
+                  </template>
+                </component>
+              </div>
+              <button
+                v-else
+                type="button"
+                class="text-sm text-gray-400 dark:text-gray-500 hover:text-primary-500 transition-colors"
+                @click="descriptionEditing = true"
+              >
+                {{ $t('tasks.emptyDescription') }}
+              </button>
+            </div>
           </div>
 
           <div class="flex-shrink-0 border-t border-gray-100 dark:border-gray-800 px-6 py-4">
@@ -111,6 +155,65 @@
             >
               {{ $t('tasks.emptyChecklist') }}
             </button>
+
+            <div class="mt-5 border-t border-gray-100 dark:border-gray-800 pt-4">
+              <div class="mb-3 flex items-center justify-between gap-3">
+                <div>
+                  <div class="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">{{ $t('tasks.attachments') }}</div>
+                  <div class="text-xs text-gray-500 dark:text-gray-500 mt-0.5">{{ attachmentsSummary }}</div>
+                </div>
+                <button
+                  type="button"
+                  class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-300 hover:bg-primary-600 hover:text-white transition-colors"
+                  :title="$t('tasks.addAttachment')"
+                  @click="fileInputRef?.click()"
+                >
+                  <Paperclip class="w-4 h-4" />
+                </button>
+                <input
+                  ref="fileInputRef"
+                  type="file"
+                  multiple
+                  class="hidden"
+                  @change="uploadAttachments"
+                />
+              </div>
+
+              <div v-if="form.attachments.length" class="space-y-2">
+                <div
+                  v-for="file in form.attachments"
+                  :key="file.id"
+                  class="group flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-2 dark:border-gray-800 dark:bg-gray-900/60"
+                >
+                  <FileText class="w-4 h-4 flex-shrink-0 text-gray-400" />
+                  <a
+                    :href="file.url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="min-w-0 flex-1 truncate text-sm text-gray-800 hover:text-primary-600 dark:text-gray-200 dark:hover:text-primary-400"
+                  >
+                    {{ file.name }}
+                  </a>
+                  <span class="text-xs text-gray-400">{{ formatFileSize(file.size) }}</span>
+                  <button
+                    type="button"
+                    class="flex-shrink-0 rounded-md p-1 text-gray-400 opacity-0 transition group-hover:opacity-100 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/40"
+                    :title="$t('common.delete')"
+                    @click="removeAttachment(file.id)"
+                  >
+                    <Trash2 class="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+              <button
+                v-else
+                type="button"
+                class="w-full rounded-lg border border-dashed border-gray-300 px-3 py-3 text-left text-sm text-gray-500 transition-colors hover:border-primary-400 hover:text-primary-500 dark:border-gray-700 dark:text-gray-400"
+                @click="fileInputRef?.click()"
+              >
+                {{ attachmentUploading ? $t('common.loading') : $t('tasks.emptyAttachments') }}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -192,7 +295,7 @@
       <div class="flex items-center gap-3 px-6 py-4 border-t border-gray-100 dark:border-gray-800">
         <button
           class="flex items-center gap-1.5 px-3 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-950/50 rounded-lg transition-colors"
-          @click="$emit('deleted', task.id)"
+          @click="showDeleteConfirm = true"
         >
           <Trash2 class="w-4 h-4" />
           {{ $t('tasks.delete') }}
@@ -214,13 +317,25 @@
         </button>
       </div>
     </div>
+
+    <ConfirmDialog
+      :visible="showDeleteConfirm"
+      :title="$t('tasks.delete')"
+      :message="$t('tasks.deleteConfirm')"
+      :confirm-text="$t('tasks.delete')"
+      :cancel-text="$t('common.cancel')"
+      variant="danger"
+      @confirm="confirmDelete"
+      @cancel="showDeleteConfirm = false"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { X, Trash2, Plus, Check, Pencil } from 'lucide-vue-next'
+import { X, Trash2, Plus, Check, Pencil, Paperclip, FileText } from 'lucide-vue-next'
 import { format } from 'date-fns'
 import BlockEditor from './BlockEditor.vue'
+import ConfirmDialog from '~/components/ConfirmDialog.vue'
 
 const props = defineProps<{
   task: any
@@ -251,17 +366,37 @@ interface ChecklistItem {
   checked: boolean
 }
 
+interface Attachment {
+  id: string
+  name: string
+  url: string
+  size: number
+  type: string
+  uploaded_at: string
+}
+
+interface DescriptionBlock {
+  id: string
+  type: 'text' | 'h1' | 'h2' | 'h3' | 'bullet' | 'todo' | 'code'
+  content: string
+}
+
 function initials(user: { name?: string; family_name?: string }): string {
   return ((user.name?.[0] ?? '') + (user.family_name?.[0] ?? '')).toUpperCase() || '?'
 }
 
 const autosaveState = ref<'idle' | 'saving' | 'saved' | 'error'>('idle')
 const editingChecklistItemId = ref<string | null>(null)
+const showDeleteConfirm = ref(false)
+const descriptionEditing = ref(false)
+const attachmentUploading = ref(false)
+const fileInputRef = ref<HTMLInputElement | null>(null)
 let autosaveTimer: ReturnType<typeof setTimeout> | null = null
 const form = reactive({
   title: props.task.title,
   description: props.task.description ?? '',
   checklist: normalizeChecklist(props.task.checklist),
+  attachments: normalizeAttachments(props.task.attachments),
   priority: props.task.priority,
   assigned_to: props.task.assigned_to ?? '',
   due_date: props.task.due_date ? format(new Date(props.task.due_date), 'yyyy-MM-dd') : '',
@@ -280,6 +415,14 @@ const autosaveLabel = computed(() => {
   return t('common.autosave')
 })
 
+const descriptionBlocks = computed(() => parseDescriptionBlocks(form.description))
+
+const attachmentsSummary = computed(() => {
+  if (attachmentUploading.value) return t('common.loading')
+  if (!form.attachments.length) return t('tasks.noAttachments')
+  return t('tasks.attachmentsCount', { count: form.attachments.length })
+})
+
 function normalizeChecklist(value: unknown): ChecklistItem[] {
   if (!Array.isArray(value)) return []
   return value
@@ -289,6 +432,74 @@ function normalizeChecklist(value: unknown): ChecklistItem[] {
       title: String(item.title || ''),
       checked: Boolean(item.checked),
     }))
+}
+
+function normalizeAttachments(value: unknown): Attachment[] {
+  if (!Array.isArray(value)) return []
+  return value
+    .filter((item) => item && typeof item === 'object')
+    .map((item: any) => ({
+      id: String(item.id || uid()),
+      name: String(item.name || ''),
+      url: String(item.url || ''),
+      size: Number(item.size || 0),
+      type: String(item.type || ''),
+      uploaded_at: String(item.uploaded_at || new Date().toISOString()),
+    }))
+    .filter((item) => item.name && item.url)
+}
+
+function parseDescriptionBlocks(value: string): DescriptionBlock[] {
+  if (!value?.trim()) return []
+  try {
+    const parsed = JSON.parse(value)
+    if (Array.isArray(parsed)) {
+      return parsed
+        .filter((block) => block && typeof block === 'object')
+        .map((block: any) => ({
+          id: String(block.id || uid()),
+          type: ['text', 'h1', 'h2', 'h3', 'bullet', 'todo', 'code'].includes(block.type) ? block.type : 'text',
+          content: String(block.content || ''),
+        }))
+        .filter((block) => block.content.trim())
+    }
+  } catch {}
+  return [{ id: 'plain-description', type: 'text', content: value }]
+}
+
+function descriptionTag(type: DescriptionBlock['type']) {
+  if (type === 'h1') return 'h1'
+  if (type === 'h2') return 'h2'
+  if (type === 'h3') return 'h3'
+  if (type === 'code') return 'pre'
+  return 'p'
+}
+
+function descriptionClass(type: DescriptionBlock['type']) {
+  return {
+    h1: 'text-2xl font-bold text-gray-900 dark:text-gray-100',
+    h2: 'text-xl font-semibold text-gray-900 dark:text-gray-100',
+    h3: 'text-base font-semibold text-gray-800 dark:text-gray-200',
+    bullet: 'relative pl-4 text-sm leading-relaxed text-gray-700 before:absolute before:left-0 before:top-2.5 before:h-1.5 before:w-1.5 before:rounded-full before:bg-gray-400 dark:text-gray-300',
+    todo: 'text-sm leading-relaxed text-gray-700 dark:text-gray-300',
+    code: 'whitespace-pre-wrap rounded-lg border border-gray-200 bg-gray-100 p-3 font-mono text-sm text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100',
+    text: 'text-sm leading-relaxed text-gray-700 dark:text-gray-300',
+  }[type]
+}
+
+function linkSegments(text: string) {
+  const segments: { text: string; href?: string }[] = []
+  const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/g
+  let lastIndex = 0
+  for (const match of text.matchAll(urlRegex)) {
+    const url = match[0]
+    const index = match.index ?? 0
+    if (index > lastIndex) segments.push({ text: text.slice(lastIndex, index) })
+    segments.push({ text: url, href: url.startsWith('http') ? url : `https://${url}` })
+    lastIndex = index + url.length
+  }
+  if (lastIndex < text.length) segments.push({ text: text.slice(lastIndex) })
+  return segments.length ? segments : [{ text }]
 }
 
 function uid() {
@@ -325,6 +536,44 @@ async function removeChecklistItem(itemId: string) {
   await saveTaskNow()
 }
 
+async function uploadAttachments(event: Event) {
+  const input = event.target as HTMLInputElement
+  const files = Array.from(input.files ?? [])
+  if (!files.length) return
+
+  const body = new FormData()
+  for (const file of files) body.append('files', file)
+
+  attachmentUploading.value = true
+  autosaveState.value = 'saving'
+  try {
+    const updated = await $fetch<any>(`/api/projects/${props.projectId}/tasks/${props.task.id}/attachments`, {
+      method: 'POST',
+      body,
+    })
+    form.attachments = normalizeAttachments(updated.attachments)
+    autosaveState.value = 'saved'
+    emit('updated', updated)
+  } catch {
+    autosaveState.value = 'error'
+  } finally {
+    attachmentUploading.value = false
+    input.value = ''
+  }
+}
+
+async function removeAttachment(attachmentId: string) {
+  form.attachments = form.attachments.filter((item) => item.id !== attachmentId)
+  await saveTaskNow()
+}
+
+function formatFileSize(size: number) {
+  if (!size) return ''
+  if (size < 1024) return `${size} B`
+  if (size < 1024 * 1024) return `${Math.round(size / 1024)} KB`
+  return `${(size / (1024 * 1024)).toFixed(1)} MB`
+}
+
 function taskPayload() {
   return {
     title: form.title,
@@ -333,6 +582,7 @@ function taskPayload() {
     assigned_to: form.assigned_to || null,
     due_date: form.due_date || null,
     checklist: form.checklist,
+    attachments: form.attachments,
   }
 }
 
@@ -373,6 +623,7 @@ watch(
     assigned_to: form.assigned_to,
     due_date: form.due_date,
     checklist: form.checklist.map((item) => ({ ...item })),
+    attachments: form.attachments.map((item) => ({ ...item })),
   }),
   scheduleAutosave,
   { deep: true }
@@ -382,4 +633,8 @@ onBeforeUnmount(() => {
   if (autosaveTimer) saveTaskNow()
 })
 
+function confirmDelete() {
+  showDeleteConfirm.value = false
+  emit('deleted', props.task.id)
+}
 </script>

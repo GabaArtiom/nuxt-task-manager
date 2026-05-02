@@ -127,7 +127,7 @@
           <h4 class="text-sm font-semibold text-red-600 mb-3">Danger Zone</h4>
           <button
             class="flex items-center gap-2 px-4 py-2 border border-red-300 dark:border-red-800 text-red-600 text-sm font-medium rounded-lg hover:bg-red-50 dark:hover:bg-red-950 transition-colors"
-            @click="deleteProject"
+            @click="showDeleteConfirm = true"
           >
             <Trash2 class="w-4 h-4" />
             {{ $t('projects.deleteProject') }}
@@ -135,11 +135,23 @@
         </div>
       </div>
     </div>
+
+    <ConfirmDialog
+      :visible="showDeleteConfirm"
+      :title="$t('projects.deleteProject')"
+      :message="$t('projects.deleteConfirm')"
+      :confirm-text="$t('projects.deleteProject')"
+      :cancel-text="$t('common.cancel')"
+      variant="danger"
+      @confirm="deleteProject"
+      @cancel="showDeleteConfirm = false"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { X, UserPlus, UserMinus, Trash2 } from 'lucide-vue-next'
+import ConfirmDialog from '~/components/ConfirmDialog.vue'
 
 const props = defineProps<{ project: any }>()
 const emit = defineEmits<{
@@ -154,6 +166,7 @@ const memberError = ref('')
 const searchQuery = ref('')
 const selectedUserId = ref('')
 const showDropdown = ref(false)
+const showDeleteConfirm = ref(false)
 const allUsers = ref<{ id: string; name: string; family_name: string; email: string }[]>([])
 const searchInput = ref<HTMLInputElement | null>(null)
 const dropdownStyle = ref({})
@@ -236,7 +249,7 @@ async function removeMember(userId: string) {
 }
 
 async function deleteProject() {
-  if (!confirm(t('projects.deleteConfirm'))) return
+  showDeleteConfirm.value = false
   await $fetch(`/api/projects/${props.project.id}`, { method: 'DELETE' })
   emit('deleted')
 }

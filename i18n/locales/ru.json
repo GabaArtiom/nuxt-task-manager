@@ -91,7 +91,13 @@
     "checklistItemPlaceholder": "Название пункта",
     "emptyChecklist": "Добавить пункт чеклиста",
     "noChecklistItems": "Пунктов пока нет",
-    "checklistProgress": "{completed} из {total} выполнено"
+    "checklistProgress": "{completed} из {total} выполнено",
+    "emptyDescription": "Добавить описание",
+    "attachments": "Файлы",
+    "addAttachment": "Добавить файлы",
+    "emptyAttachments": "Добавить файлы",
+    "noAttachments": "Файлов пока нет",
+    "attachmentsCount": "Файлов: {count}"
   },
   "users": {
     "title": "Управление пользователями",
@@ -131,7 +137,8 @@
     "back": "Назад",
     "close": "Закрыть",
     "saved": "Сохранено",
-    "autosave": "Автосохранение"
+    "autosave": "Автосохранение",
+    "done": "Готово"
   },
   "theme": {
     "light": "Светлая",

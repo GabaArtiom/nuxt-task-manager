@@ -91,7 +91,13 @@
     "checklistItemPlaceholder": "Checklist item",
     "emptyChecklist": "Add a checklist item",
     "noChecklistItems": "No checklist items",
-    "checklistProgress": "{completed} of {total} complete"
+    "checklistProgress": "{completed} of {total} complete",
+    "emptyDescription": "Add a description",
+    "attachments": "Files",
+    "addAttachment": "Add files",
+    "emptyAttachments": "Add files",
+    "noAttachments": "No files",
+    "attachmentsCount": "{count} files"
   },
   "users": {
     "title": "User Management",
@@ -131,7 +137,8 @@
     "back": "Back",
     "close": "Close",
     "saved": "Saved",
-    "autosave": "Autosaves"
+    "autosave": "Autosaves",
+    "done": "Done"
   },
   "theme": {
     "light": "Light",

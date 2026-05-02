@@ -178,7 +178,8 @@
     "back": "Indietro",
     "close": "Chiudi",
     "saved": "Salvato",
-    "autosave": "Salvataggio automatico"
+    "autosave": "Salvataggio automatico",
+    "done": "Fatto"
   },
   "theme": {
     "light": "Chiaro",
@@ -195,6 +196,12 @@
     "checklistItemPlaceholder": "Elemento checklist",
     "emptyChecklist": "Aggiungi un elemento checklist",
     "noChecklistItems": "Nessun elemento checklist",
-    "checklistProgress": "{completed} di {total} completati"
+    "checklistProgress": "{completed} di {total} completati",
+    "emptyDescription": "Aggiungi una descrizione",
+    "attachments": "File",
+    "addAttachment": "Aggiungi file",
+    "emptyAttachments": "Aggiungi file",
+    "noAttachments": "Nessun file",
+    "attachmentsCount": "{count} file"
   }
 }
