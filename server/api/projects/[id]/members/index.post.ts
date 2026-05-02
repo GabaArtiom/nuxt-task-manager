@@ -1,6 +1,6 @@
 import { prisma } from '~~/server/utils/db'
 import { requireAuth } from '~~/server/utils/auth'
-import { broadcastToProject } from '~~/server/utils/broadcast'
+import { broadcastToProject, broadcastToUsers } from '~~/server/utils/broadcast'
 
 export default defineEventHandler(async (event) => {
   const user = await requireAuth(event)
@@ -43,6 +43,21 @@ export default defineEventHandler(async (event) => {
   })
 
   broadcastToProject(projectId, 'member:added', { member: newMember, triggered_by: user.id })
+
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    include: {
+      creator: { select: { id: true, name: true, family_name: true } },
+      members: {
+        include: { user: { select: { id: true, name: true, family_name: true, email: true } } },
+      },
+      _count: { select: { tasks: true, columns: true } },
+    },
+  })
+
+  if (project) {
+    broadcastToUsers([invitedUser.id], 'project:list:upsert', { project, triggered_by: user.id })
+  }
 
   return newMember
 })

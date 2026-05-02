@@ -1,5 +1,6 @@
 import { prisma } from '~~/server/utils/db'
 import { requireAuth } from '~~/server/utils/auth'
+import { broadcastToUsers } from '~~/server/utils/broadcast'
 
 export default defineEventHandler(async (event) => {
   const user = await requireAuth(event)
@@ -33,6 +34,8 @@ export default defineEventHandler(async (event) => {
       _count: { select: { tasks: true } },
     },
   })
+
+  broadcastToUsers([user.id], 'project:list:upsert', { project, triggered_by: user.id })
 
   return project
 })

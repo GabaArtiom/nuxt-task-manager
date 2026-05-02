@@ -1,6 +1,6 @@
 import { prisma } from '~~/server/utils/db'
 import { requireAuth } from '~~/server/utils/auth'
-import { broadcastToProject } from '~~/server/utils/broadcast'
+import { broadcastToProject, broadcastToUsers } from '~~/server/utils/broadcast'
 
 export default defineEventHandler(async (event) => {
   const user = await requireAuth(event)
@@ -24,6 +24,7 @@ export default defineEventHandler(async (event) => {
   })
 
   broadcastToProject(projectId, 'member:removed', { user_id: targetUserId, triggered_by: user.id })
+  broadcastToUsers([targetUserId], 'project:list:remove', { project_id: projectId, triggered_by: user.id })
 
   return { success: true }
 })

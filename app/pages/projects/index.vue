@@ -91,14 +91,60 @@ definePageMeta({ middleware: 'auth' })
 const auth = useAuthStore()
 const projects = ref<any[]>([])
 const loading = ref(true)
+let eventSource: EventSource | null = null
+let reconnectTimer: ReturnType<typeof setTimeout> | null = null
 
-onMounted(async () => {
+onMounted(() => {
+  loadProjects()
+  connectProjectListRealtime()
+})
+
+onUnmounted(() => {
+  if (reconnectTimer) clearTimeout(reconnectTimer)
+  eventSource?.close()
+  eventSource = null
+})
+
+async function loadProjects() {
   try {
     projects.value = await $fetch<any[]>('/api/projects')
   } catch {} finally {
     loading.value = false
   }
-})
+}
+
+function connectProjectListRealtime() {
+  if (import.meta.server) return
+  eventSource = new EventSource('/sse')
+
+  eventSource.onmessage = (event) => {
+    if (!event.data) return
+    try {
+      const { type, data } = JSON.parse(event.data)
+      if (type === 'connected') return
+      applyProjectListEvent(type, data)
+    } catch {}
+  }
+
+  eventSource.onerror = () => {
+    eventSource?.close()
+    eventSource = null
+    reconnectTimer = setTimeout(connectProjectListRealtime, 3000)
+  }
+}
+
+function applyProjectListEvent(type: string, data: any) {
+  if (type === 'project:list:upsert') {
+    const idx = projects.value.findIndex((project) => project.id === data.project.id)
+    if (idx === -1) projects.value.unshift(data.project)
+    else projects.value[idx] = { ...projects.value[idx], ...data.project }
+    return
+  }
+
+  if (type === 'project:list:remove') {
+    projects.value = projects.value.filter((project) => project.id !== data.project_id)
+  }
+}
 
 function myRole(project: any) {
   const m = project.members.find((m: any) => m.user_id === auth.user?.id)
