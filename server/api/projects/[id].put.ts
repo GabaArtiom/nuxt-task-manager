@@ -1,5 +1,6 @@
 import { prisma } from '~~/server/utils/db'
 import { requireAuth } from '~~/server/utils/auth'
+import { broadcastToProject } from '~~/server/utils/broadcast'
 
 export default defineEventHandler(async (event) => {
   const user = await requireAuth(event)
@@ -23,6 +24,8 @@ export default defineEventHandler(async (event) => {
       description: body.description?.trim() ?? null,
     },
   })
+
+  broadcastToProject(id, 'project:updated', { project, triggered_by: user.id })
 
   return project
 })

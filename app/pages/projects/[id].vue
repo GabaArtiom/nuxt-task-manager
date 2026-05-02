@@ -131,11 +131,6 @@
 
                 <p class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">{{ task.title }}</p>
 
-                <div v-if="checklistStats(task).total" class="mb-2 inline-flex items-center gap-1.5 rounded-md bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-500 dark:bg-gray-800 dark:text-gray-400">
-                  <CheckSquare class="w-3.5 h-3.5" />
-                  <span>{{ checklistStats(task).completed }}/{{ checklistStats(task).total }}</span>
-                </div>
-
                 <div class="flex items-center justify-between">
                   <div v-if="task.assignee" class="flex items-center gap-1.5">
                     <div class="w-5 h-5 rounded-full bg-primary-600 flex items-center justify-center text-white text-[10px] font-medium uppercase">
@@ -144,7 +139,16 @@
                     <span class="text-xs text-gray-500">{{ task.assignee.name }}</span>
                   </div>
                   <span v-else class="text-xs text-gray-400 italic">{{ $t('tasks.unassigned') }}</span>
-                  <span v-if="task.due_date" class="text-xs text-gray-400">{{ formatDate(task.due_date) }}</span>
+                  <div class="flex items-center gap-2">
+                    <span
+                      v-if="checklistStats(task).total"
+                      class="inline-flex items-center gap-1 rounded-md bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-500 dark:bg-gray-800 dark:text-gray-400"
+                    >
+                      <CheckSquare class="w-3.5 h-3.5" />
+                      {{ checklistStats(task).completed }}/{{ checklistStats(task).total }}
+                    </span>
+                    <span v-if="task.due_date" class="text-xs text-gray-400">{{ formatDate(task.due_date) }}</span>
+                  </div>
                 </div>
               </div>
             </Draggable>
@@ -383,21 +387,24 @@ function onTaskCreated(task: any) {
 }
 
 function onTaskUpdated(updated: any) {
+  let nextTask = updated
+
   for (const col of project.value.columns) {
     const idx = col.tasks.findIndex((t: any) => t.id === updated.id)
     if (idx !== -1) {
+      nextTask = { ...col.tasks[idx], ...updated }
       if (updated.column_id !== col.id) {
         col.tasks.splice(idx, 1)
         const newCol = project.value.columns.find((c: any) => c.id === updated.column_id)
-        if (newCol) newCol.tasks.push(updated)
+        if (newCol && !newCol.tasks.some((t: any) => t.id === updated.id)) newCol.tasks.push(nextTask)
       } else {
-        col.tasks[idx] = updated
+        col.tasks[idx] = nextTask
       }
       break
     }
   }
-  selectedTask.value = updated
-  selectedColumn.value = project.value.columns.find((c: any) => c.id === updated.column_id)
+  selectedTask.value = nextTask
+  selectedColumn.value = project.value.columns.find((c: any) => c.id === nextTask.column_id)
 }
 
 function confirmDeleteTask(task: any) {

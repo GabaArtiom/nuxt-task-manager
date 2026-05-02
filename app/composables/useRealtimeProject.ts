@@ -15,7 +15,6 @@ export function useRealtimeProject(projectId: string, project: Ref<any>) {
         const { type, data } = JSON.parse(e.data)
         if (type === 'connected') return
         if (data.project_id !== projectId) return
-        if (data.triggered_by === auth.user?.id) return
         applyEvent(type, data)
       } catch {}
     }
@@ -41,18 +40,32 @@ export function useRealtimeProject(projectId: string, project: Ref<any>) {
       }
 
       case 'task:updated': {
-        // Remove from old column
+        let existingTask: any = null
+
         for (const col of p.columns) {
           const idx = col.tasks.findIndex((t: any) => t.id === data.task.id)
-          if (idx !== -1) { col.tasks.splice(idx, 1); break }
+          if (idx !== -1) {
+            existingTask = col.tasks[idx]
+            col.tasks.splice(idx, 1)
+            break
+          }
         }
-        // Insert into target column at correct position
+
+        const task = existingTask ? { ...existingTask, ...data.task } : data.task
         const targetCol = p.columns.find((c: any) => c.id === data.task.column_id)
         if (targetCol) {
-          const insertAt = targetCol.tasks.findIndex((t: any) => t.order > data.task.order)
-          if (insertAt === -1) targetCol.tasks.push(data.task)
-          else targetCol.tasks.splice(insertAt, 0, data.task)
+          const existingIdx = targetCol.tasks.findIndex((t: any) => t.id === task.id)
+          if (existingIdx !== -1) targetCol.tasks.splice(existingIdx, 1)
+
+          const insertAt = targetCol.tasks.findIndex((t: any) => t.order > task.order)
+          if (insertAt === -1) targetCol.tasks.push(task)
+          else targetCol.tasks.splice(insertAt, 0, task)
         }
+        break
+      }
+
+      case 'project:updated': {
+        Object.assign(p, data.project)
         break
       }
 
