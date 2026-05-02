@@ -36,7 +36,7 @@ A professional full-stack ticket management system built with **Nuxt 3**, featur
 
 ### Prerequisites
 - Node.js 22.x
-- PostgreSQL database
+- MariaDB/MySQL database
 - SMTP server (for email functionality)
 
 ### Installation
@@ -59,7 +59,7 @@ cp .env.example .env
 
 Edit `.env` with your configuration:
 ```env
-DATABASE_URL="postgresql://user:password@localhost:5432/tickets"
+DATABASE_URL="mysql://user:password@localhost:3306/tickets"
 JWT_SECRET="your-secret-key-min-32-chars"
 SMTP_HOST="smtp.example.com"
 SMTP_PORT=465
@@ -69,7 +69,7 @@ FROM_EMAIL="noreply@example.com"
 APP_URL="http://localhost:3000"
 ```
 
-4. **Start PostgreSQL** (using Docker)
+4. **Start MariaDB** (using Docker)
 ```bash
 docker-compose up -d
 ```
@@ -212,7 +212,7 @@ GET    /sse                         # Server-Sent Events stream
 | Styling | Tailwind CSS v3 |
 | Icons | Lucide Vue Next |
 | State | Pinia |
-| Database | PostgreSQL + Prisma ORM |
+| Database | MariaDB/MySQL + Prisma ORM |
 | Auth | JWT (jsonwebtoken) |
 | Email | Nodemailer |
 | Validation | Zod + Vee-Validate |
@@ -226,6 +226,9 @@ npm run dev          # Start development server
 npm run build        # Build for production
 npm run preview      # Preview production build
 npm run db:migrate   # Run database migrations
+npm run db:deploy    # Deploy migrations in production
+npm run db:status    # Check migration status
+npm run db:baseline  # Mark existing MariaDB schema as applied
 npm run db:seed      # Seed database with demo data
 npm run db:reset     # Reset database (caution!)
 ```
@@ -234,7 +237,7 @@ npm run db:reset     # Reset database (caution!)
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `DATABASE_URL` | PostgreSQL connection string | - |
+| `DATABASE_URL` | MariaDB/MySQL connection string | - |
 | `JWT_SECRET` | Secret for JWT signing (min 32 chars) | - |
 | `SMTP_HOST` | SMTP server hostname | localhost |
 | `SMTP_PORT` | SMTP server port | 587 |
@@ -245,16 +248,16 @@ npm run db:reset     # Reset database (caution!)
 
 ## 🐳 Docker Support
 
-Start PostgreSQL with Docker Compose:
+Start MariaDB with Docker Compose:
 
 ```bash
 docker-compose up -d
 ```
 
 The `docker-compose.yml` includes:
-- PostgreSQL 15
+- MariaDB 11.4
 - Persistent volume for data
-- Port 5432 exposed
+- Port 3306 exposed
 
 ## 📝 Database Schema
 

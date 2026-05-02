@@ -1,16 +1,17 @@
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: tickets-db
+  mariadb:
+    image: mariadb:11.4
+    container_name: tickets-mariadb
     restart: unless-stopped
     environment:
-      POSTGRES_DB: tickets
-      POSTGRES_USER: tickets
-      POSTGRES_PASSWORD: tickets123
+      MARIADB_DATABASE: tickets
+      MARIADB_USER: tickets
+      MARIADB_PASSWORD: tickets_password
+      MARIADB_ROOT_PASSWORD: root_password
     ports:
-      - '5432:5432'
+      - '3306:3306'
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - mariadb_data:/var/lib/mysql
 
 volumes:
-  postgres_data:
+  mariadb_data:
