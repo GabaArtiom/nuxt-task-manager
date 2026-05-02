@@ -319,15 +319,54 @@ function onDragEnd() {
 
 async function onDrop({ removedIndex, addedIndex, payload }: any, column: any) {
   draggingTaskId.value = null
+  if (removedIndex === null && addedIndex === null) return
+
   if (removedIndex !== null) {
-    column.tasks.splice(removedIndex, 1)
+    if (column.tasks[removedIndex]?.id === payload?.id) {
+      column.tasks.splice(removedIndex, 1)
+    }
   }
+
   if (addedIndex !== null) {
-    column.tasks.splice(addedIndex, 0, payload)
-    await $fetch(`/api/projects/${projectId}/tasks/${payload.id}`, {
-      method: 'PUT',
-      body: { column_id: column.id, order: addedIndex },
+    if (removedIndex === null) {
+      removeTaskFromOtherColumns(payload.id, column.id)
+    }
+    column.tasks.splice(addedIndex, 0, { ...payload, column_id: column.id })
+    await persistBoardOrder()
+  }
+}
+
+function removeTaskFromOtherColumns(taskId: string, targetColumnId: string) {
+  for (const col of project.value?.columns ?? []) {
+    if (col.id === targetColumnId) continue
+    const idx = col.tasks.findIndex((task: any) => task.id === taskId)
+    if (idx !== -1) col.tasks.splice(idx, 1)
+  }
+}
+
+async function persistBoardOrder() {
+  if (!project.value?.columns) return
+
+  const updates = project.value.columns.flatMap((column: any) =>
+    column.tasks.map((task: any, index: number) => {
+      task.column_id = column.id
+      task.order = index
+      return {
+        id: task.id,
+        column_id: column.id,
+        order: index,
+      }
     })
+  )
+
+  const result = await $fetch<any>(`/api/projects/${projectId}/tasks/reorder`, {
+    method: 'POST',
+    body: { updates },
+  })
+
+  for (const incomingColumn of result.columns ?? []) {
+    const col = project.value.columns.find((item: any) => item.id === incomingColumn.id)
+    if (col) col.tasks = incomingColumn.tasks ?? []
   }
 }
 

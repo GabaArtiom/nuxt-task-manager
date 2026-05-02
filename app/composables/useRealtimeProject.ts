@@ -77,6 +77,14 @@ export function useRealtimeProject(projectId: string, project: Ref<any>) {
         break
       }
 
+      case 'tasks:reordered': {
+        for (const incomingColumn of data.columns ?? []) {
+          const col = p.columns.find((c: any) => c.id === incomingColumn.id)
+          if (col) col.tasks = incomingColumn.tasks ?? []
+        }
+        break
+      }
+
       case 'column:created': {
         if (!p.columns.find((c: any) => c.id === data.column.id)) {
           p.columns.push({ ...data.column, tasks: [] })
