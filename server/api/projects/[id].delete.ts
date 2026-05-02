@@ -1,5 +1,6 @@
 import { prisma } from '~~/server/utils/db'
 import { requireAuth } from '~~/server/utils/auth'
+import { broadcastToUsers } from '~~/server/utils/broadcast'
 
 export default defineEventHandler(async (event) => {
   const user = await requireAuth(event)
@@ -15,7 +16,17 @@ export default defineEventHandler(async (event) => {
     }
   }
 
+  const members = await prisma.projectMember.findMany({
+    where: { project_id: id },
+    select: { user_id: true },
+  })
+
   await prisma.project.delete({ where: { id } })
+
+  broadcastToUsers(members.map((member) => member.user_id), 'project:list:remove', {
+    project_id: id,
+    triggered_by: user.id,
+  })
 
   return { success: true }
 })
