@@ -390,7 +390,9 @@ async function addColumn() {
     method: 'POST',
     body: { name: newColumnName.value.trim() },
   })
-  project.value.columns.push({ ...col, tasks: [] })
+  if (!project.value.columns.some((c: any) => c.id === col.id)) {
+    project.value.columns.push({ ...col, tasks: [] })
+  }
   newColumnName.value = ''
   showAddColumn.value = false
 }
@@ -435,7 +437,7 @@ function openTask(task: any, column: any) {
 
 function onTaskCreated(task: any) {
   const col = project.value.columns.find((c: any) => c.id === task.column_id)
-  if (col) col.tasks.push(task)
+  if (col && !col.tasks.some((t: any) => t.id === task.id)) col.tasks.push(task)
   addingToColumn.value = null
 }
 

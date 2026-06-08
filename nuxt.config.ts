@@ -19,6 +19,16 @@ export default defineNuxtConfig({
     '@nuxtjs/i18n',
   ],
 
+  // Pragmatic DnD ships subpath ESM exports that Nitro can't resolve when
+  // externalised in the server build; transpile so they're bundled inline.
+  build: {
+    transpile: [
+      '@atlaskit/pragmatic-drag-and-drop',
+      '@atlaskit/pragmatic-drag-and-drop-hitbox',
+      '@atlaskit/pragmatic-drag-and-drop-auto-scroll',
+    ],
+  },
+
   i18n: {
     langDir: '../i18n/locales',
     locales: [
