@@ -1,6 +1,7 @@
 <template>
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" @click.self="$emit('close')">
-    <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 w-full max-w-4xl h-[98vh] flex flex-col overflow-hidden shadow-2xl">
+  <div class="fixed inset-0 z-50 overflow-y-auto bg-black/50" @click.self="$emit('close')">
+    <div class="flex min-h-full items-center justify-center p-4" @click.self="$emit('close')">
+    <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 w-full max-w-4xl flex flex-col overflow-hidden shadow-2xl">
       <div class="flex items-center gap-3 px-6 pt-5 pb-4 border-b border-gray-100 dark:border-gray-800">
         <input
           v-model="form.title"
@@ -15,9 +16,9 @@
         </button>
       </div>
 
-      <div class="flex flex-1 min-h-0">
-        <div class="flex-1 min-w-0 min-h-0 flex flex-col">
-          <div ref="descriptionAreaRef" class="flex-[3] min-h-0 overflow-y-auto px-6 py-4">
+      <div class="flex">
+        <div class="flex-1 min-w-0 flex flex-col">
+          <div ref="descriptionAreaRef" class="px-6 py-4">
             <div class="mb-3 flex items-center justify-between gap-3">
               <div class="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">{{ $t('tasks.description') }}</div>
               <button
@@ -65,7 +66,7 @@
             </div>
           </div>
 
-          <div class="flex-[2] min-h-0 overflow-y-auto border-t border-gray-100 dark:border-gray-800 px-6 py-4">
+          <div class="border-t border-gray-100 dark:border-gray-800 px-6 py-4">
             <div class="flex items-center justify-between gap-3 mb-3">
               <div>
                 <div class="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">{{ $t('tasks.checklist') }}</div>
@@ -230,7 +231,7 @@
           </div>
         </div>
 
-        <div class="w-56 flex-shrink-0 border-l border-gray-100 dark:border-gray-800 overflow-y-auto px-4 py-5 space-y-5">
+        <div class="w-56 flex-shrink-0 border-l border-gray-100 dark:border-gray-800 px-4 py-5 space-y-5">
           <div>
             <div class="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-2">{{ $t('tasks.assignTo') }}</div>
             <div class="space-y-0.5">
@@ -334,6 +335,7 @@
           {{ $t('common.close') }}
         </button>
       </div>
+    </div>
     </div>
 
     <ConfirmDialog
