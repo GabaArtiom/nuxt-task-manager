@@ -189,7 +189,16 @@
                   :key="file.id"
                   class="group flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-2 dark:border-gray-800 dark:bg-gray-900/60"
                 >
-                  <FileText class="w-4 h-4 flex-shrink-0 text-gray-400" />
+                  <button
+                    v-if="isImage(file)"
+                    type="button"
+                    class="flex-shrink-0 overflow-hidden rounded border border-gray-200 dark:border-gray-700 transition hover:ring-2 hover:ring-primary-400"
+                    :title="$t('common.view')"
+                    @click.stop="previewImage = file"
+                  >
+                    <img :src="downloadUrl(file)" :alt="file.name" class="h-9 w-9 object-cover" />
+                  </button>
+                  <FileText v-else class="w-4 h-4 flex-shrink-0 text-gray-400" />
                   <a
                     :href="downloadUrl(file)"
                     target="_blank"
@@ -336,6 +345,26 @@
         </button>
       </div>
     </div>
+    </div>
+
+    <div
+      v-if="previewImage"
+      class="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-4"
+      @click="previewImage = null"
+    >
+      <img
+        :src="downloadUrl(previewImage)"
+        :alt="previewImage.name"
+        class="max-h-[92vh] max-w-[92vw] rounded-lg object-contain shadow-2xl"
+        @click.stop
+      />
+      <button
+        type="button"
+        class="absolute right-4 top-4 rounded-lg p-2 text-white/80 transition hover:bg-white/10 hover:text-white"
+        @click="previewImage = null"
+      >
+        <X class="w-6 h-6" />
+      </button>
     </div>
 
     <ConfirmDialog
@@ -611,6 +640,12 @@ function formatFileSize(size: number) {
 
 function downloadUrl(file: Attachment) {
   return file.download_url || `/api/projects/${props.projectId}/tasks/${props.task.id}/attachments/${file.id}`
+}
+
+const previewImage = ref<Attachment | null>(null)
+
+function isImage(file: Attachment) {
+  return file.type?.startsWith('image/') || /\.(png|jpe?g|gif|webp|avif|svg|bmp)$/i.test(file.name)
 }
 
 function taskPayload() {
