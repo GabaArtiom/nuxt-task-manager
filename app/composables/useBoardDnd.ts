@@ -43,6 +43,7 @@ type Cleanup = () => void
  */
 export function useBoardDnd(onDrop: (plan: DropPlan) => void) {
   const draggingTaskId = ref<string | null>(null)
+  const draggingHeight = ref(0)
   const dropEdge = ref<{ taskId: string; edge: Edge | null } | null>(null)
   const dropColumnId = ref<string | null>(null)
 
@@ -52,6 +53,7 @@ export function useBoardDnd(onDrop: (plan: DropPlan) => void) {
 
   function clearVisuals() {
     draggingTaskId.value = null
+    draggingHeight.value = 0
     dropEdge.value = null
     dropColumnId.value = null
   }
@@ -85,9 +87,11 @@ export function useBoardDnd(onDrop: (plan: DropPlan) => void) {
             },
             onDragStart: () => {
               draggingTaskId.value = cardData.get(el)!.taskId
+              draggingHeight.value = el.offsetHeight
             },
             onDrop: () => {
               draggingTaskId.value = null
+              draggingHeight.value = 0
             },
           }),
           dropTargetForElements({
@@ -203,5 +207,5 @@ export function useBoardDnd(onDrop: (plan: DropPlan) => void) {
     onUnmounted(cleanup)
   })
 
-  return { draggingTaskId, dropEdge, dropColumnId, vCard, vColumn, vBoard }
+  return { draggingTaskId, draggingHeight, dropEdge, dropColumnId, vCard, vColumn, vBoard }
 }

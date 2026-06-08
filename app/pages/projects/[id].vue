@@ -103,26 +103,26 @@
           v-column="{ columnId: column.id }"
           :class="[
             'bg-gray-100 dark:bg-gray-800/50 rounded-xl p-2 flex flex-col min-h-[80px] transition-colors',
-            dropColumnId === column.id ? 'ring-2 ring-primary-400/60 ring-inset' : '',
+            dropColumnId === column.id
+              ? 'ring-2 ring-primary-500 ring-inset bg-primary-100/50 dark:bg-primary-950/30'
+              : '',
           ]"
         >
           <div class="flex flex-col gap-2 flex-1 min-h-[40px]">
-            <div
-              v-for="task in column.tasks"
-              :key="task.id"
-              v-card="{ taskId: task.id, columnId: column.id }"
-              class="relative"
-            >
+            <template v-for="task in column.tasks" :key="task.id">
+              <!-- placeholder slot (insert before this card) -->
               <div
                 v-if="dropEdge?.taskId === task.id && dropEdge.edge === 'top'"
-                class="pointer-events-none absolute -top-1 inset-x-1 z-10 h-0.5 rounded-full bg-primary-500"
+                class="pointer-events-none rounded-lg border-2 border-dashed border-primary-400 bg-primary-100/40 dark:border-primary-600 dark:bg-primary-950/30"
+                :style="{ height: `${draggingHeight}px` }"
               />
               <div
+                v-card="{ taskId: task.id, columnId: column.id }"
+                :class="['relative', draggingTaskId === task.id ? 'hidden' : '']"
+              >
+              <div
                 :data-task-id="task.id"
-                :class="[
-                  'bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-3 cursor-grab active:cursor-grabbing hover:shadow-sm hover:border-primary-300 dark:hover:border-primary-700 transition-all',
-                  draggingTaskId === task.id ? 'opacity-40' : '',
-                ]"
+                class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-3 cursor-grab active:cursor-grabbing hover:shadow-sm hover:border-primary-300 dark:hover:border-primary-700 transition-all"
                 @click="openTask(task, column)"
               >
                 <div class="mb-2">
@@ -153,11 +153,21 @@
                   </div>
                 </div>
               </div>
+              </div>
+              <!-- placeholder slot (insert after this card) -->
               <div
                 v-if="dropEdge?.taskId === task.id && dropEdge.edge === 'bottom'"
-                class="pointer-events-none absolute -bottom-1 inset-x-1 z-10 h-0.5 rounded-full bg-primary-500"
+                class="pointer-events-none rounded-lg border-2 border-dashed border-primary-400 bg-primary-100/40 dark:border-primary-600 dark:bg-primary-950/30"
+                :style="{ height: `${draggingHeight}px` }"
               />
-            </div>
+            </template>
+
+            <!-- placeholder slot at end of list / empty column -->
+            <div
+              v-if="dropColumnId === column.id && !edgeInColumn(column)"
+              class="pointer-events-none rounded-lg border-2 border-dashed border-primary-400 bg-primary-100/40 dark:border-primary-600 dark:bg-primary-950/30"
+              :style="{ height: `${draggingHeight}px` }"
+            />
           </div>
 
           <!-- Add task button -->
@@ -294,7 +304,7 @@ const addingToColumn = ref<any>(null)
 const showSettings = ref(false)
 const confirmDialog = ref<any>(null)
 
-const { draggingTaskId, dropEdge, dropColumnId, vCard, vColumn, vBoard } = useBoardDnd(applyDrop)
+const { draggingTaskId, draggingHeight, dropEdge, dropColumnId, vCard, vColumn, vBoard } = useBoardDnd(applyDrop)
 
 const isOwner = computed(() =>
   auth.isSuperAdmin ||
@@ -315,6 +325,10 @@ async function loadProject() {
   }
 }
 
+
+function edgeInColumn(column: any) {
+  return !!dropEdge.value && column.tasks.some((t: any) => t.id === dropEdge.value!.taskId)
+}
 
 function applyDrop({ sourceTaskId, destColumnId, targetTaskId, edge }: DropPlan) {
   const columns = project.value?.columns
