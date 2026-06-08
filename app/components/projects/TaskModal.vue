@@ -16,8 +16,8 @@
       </div>
 
       <div class="flex flex-1 min-h-0">
-        <div class="flex-1 min-w-0 flex flex-col">
-          <div ref="descriptionAreaRef" class="flex-1 min-h-0 overflow-y-auto px-6 py-4">
+        <div class="flex-1 min-w-0 min-h-0 flex flex-col">
+          <div ref="descriptionAreaRef" class="flex-[3] min-h-0 overflow-y-auto px-6 py-4">
             <div class="mb-3 flex items-center justify-between gap-3">
               <div class="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">{{ $t('tasks.description') }}</div>
               <button
@@ -65,7 +65,7 @@
             </div>
           </div>
 
-          <div class="flex-shrink-0 border-t border-gray-100 dark:border-gray-800 px-6 py-4">
+          <div class="flex-[2] min-h-0 overflow-y-auto border-t border-gray-100 dark:border-gray-800 px-6 py-4">
             <div class="flex items-center justify-between gap-3 mb-3">
               <div>
                 <div class="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">{{ $t('tasks.checklist') }}</div>
