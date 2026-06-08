@@ -31,3 +31,8 @@ bun.lock
 # PM2 ecosystem config (server-specific)
 ecosystem.config.cjs
 ecosystem.config.js
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
