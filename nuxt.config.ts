@@ -54,15 +54,6 @@ export default defineNuxtConfig({
     routeRules: {
       '/sse': { headers: { 'X-Accel-Buffering': 'no' } },
     },
-    // Pragmatic DnD subpath ESM exports can't be resolved when externalised
-    // in the server build; inline them so Nitro bundles them.
-    externals: {
-      inline: [
-        '@atlaskit/pragmatic-drag-and-drop',
-        '@atlaskit/pragmatic-drag-and-drop-hitbox',
-        '@atlaskit/pragmatic-drag-and-drop-auto-scroll',
-      ],
-    },
   },
 
   components: [

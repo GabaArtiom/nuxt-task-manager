@@ -1,18 +1,5 @@
 import { ref, onMounted, onUnmounted, type Directive } from 'vue'
-import { combine } from '@atlaskit/pragmatic-drag-and-drop/combine'
-import {
-  draggable,
-  dropTargetForElements,
-  monitorForElements,
-} from '@atlaskit/pragmatic-drag-and-drop/element/adapter'
-import {
-  attachClosestEdge,
-  extractClosestEdge,
-  type Edge,
-} from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge'
-import { autoScrollForElements } from '@atlaskit/pragmatic-drag-and-drop-auto-scroll/element'
-import { setCustomNativeDragPreview } from '@atlaskit/pragmatic-drag-and-drop/element/set-custom-native-drag-preview'
-import { preserveOffsetOnSource } from '@atlaskit/pragmatic-drag-and-drop/element/preserve-offset-on-source'
+import type { Edge } from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge'
 
 export interface DropPlan {
   sourceTaskId: string
@@ -31,6 +18,38 @@ interface ColumnBinding {
 }
 
 type Cleanup = () => void
+
+/**
+ * Lazily load the Pragmatic DnD modules. These are client-only and must never
+ * be pulled into the SSR bundle (CJS interop breaks when Nitro inlines them),
+ * so they are imported dynamically from within client-only lifecycle hooks.
+ */
+let dndPromise: ReturnType<typeof loadDnd> | null = null
+async function loadDnd() {
+  const [combineM, adapterM, hitboxM, autoScrollM, previewM, offsetM] = await Promise.all([
+    import('@atlaskit/pragmatic-drag-and-drop/combine'),
+    import('@atlaskit/pragmatic-drag-and-drop/element/adapter'),
+    import('@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge'),
+    import('@atlaskit/pragmatic-drag-and-drop-auto-scroll/element'),
+    import('@atlaskit/pragmatic-drag-and-drop/element/set-custom-native-drag-preview'),
+    import('@atlaskit/pragmatic-drag-and-drop/element/preserve-offset-on-source'),
+  ])
+  return {
+    combine: combineM.combine,
+    draggable: adapterM.draggable,
+    dropTargetForElements: adapterM.dropTargetForElements,
+    monitorForElements: adapterM.monitorForElements,
+    attachClosestEdge: hitboxM.attachClosestEdge,
+    extractClosestEdge: hitboxM.extractClosestEdge,
+    autoScrollForElements: autoScrollM.autoScrollForElements,
+    setCustomNativeDragPreview: previewM.setCustomNativeDragPreview,
+    preserveOffsetOnSource: offsetM.preserveOffsetOnSource,
+  }
+}
+function dnd() {
+  if (!dndPromise) dndPromise = loadDnd()
+  return dndPromise
+}
 
 /**
  * Wires up board drag-and-drop using @atlaskit/pragmatic-drag-and-drop.
@@ -58,20 +77,35 @@ export function useBoardDnd(onDrop: (plan: DropPlan) => void) {
     dropColumnId.value = null
   }
 
+  /**
+   * Register a draggable/drop-target once the DnD modules resolve. Returns a
+   * cleanup that is safe to call before the async registration completes.
+   */
+  function register(el: HTMLElement, setup: (m: Awaited<ReturnType<typeof loadDnd>>) => Cleanup) {
+    let cleanup: Cleanup | null = null
+    let destroyed = false
+    dnd().then((m) => {
+      if (!destroyed) cleanup = setup(m)
+    })
+    cleanups.set(el, () => {
+      destroyed = true
+      cleanup?.()
+    })
+  }
+
   const vCard: Directive<HTMLElement, CardBinding> = {
     mounted(el, binding) {
       cardData.set(el, binding.value)
-      cleanups.set(
-        el,
-        combine(
-          draggable({
+      register(el, (m) =>
+        m.combine(
+          m.draggable({
             element: el,
             getInitialData: () => ({ kind: 'card', ...cardData.get(el)! }),
             onGenerateDragPreview: ({ nativeSetDragImage, location, source }) => {
               const rect = source.element.getBoundingClientRect()
-              setCustomNativeDragPreview({
+              m.setCustomNativeDragPreview({
                 nativeSetDragImage,
-                getOffset: preserveOffsetOnSource({
+                getOffset: m.preserveOffsetOnSource({
                   element: source.element,
                   input: location.current.input,
                 }),
@@ -94,12 +128,12 @@ export function useBoardDnd(onDrop: (plan: DropPlan) => void) {
               draggingHeight.value = 0
             },
           }),
-          dropTargetForElements({
+          m.dropTargetForElements({
             element: el,
             canDrop: ({ source }) => source.data.kind === 'card',
             getIsSticky: () => true,
             getData: ({ input, element }) =>
-              attachClosestEdge(
+              m.attachClosestEdge(
                 { kind: 'card', ...cardData.get(el)! },
                 { input, element, allowedEdges: ['top', 'bottom'] },
               ),
@@ -109,7 +143,7 @@ export function useBoardDnd(onDrop: (plan: DropPlan) => void) {
                 dropEdge.value = null
                 return
               }
-              dropEdge.value = { taskId, edge: extractClosestEdge(self.data) }
+              dropEdge.value = { taskId, edge: m.extractClosestEdge(self.data) }
             },
             onDragLeave: () => {
               if (dropEdge.value?.taskId === cardData.get(el)!.taskId) dropEdge.value = null
@@ -132,9 +166,8 @@ export function useBoardDnd(onDrop: (plan: DropPlan) => void) {
   const vColumn: Directive<HTMLElement, ColumnBinding> = {
     mounted(el, binding) {
       columnData.set(el, binding.value)
-      cleanups.set(
-        el,
-        dropTargetForElements({
+      register(el, (m) =>
+        m.dropTargetForElements({
           element: el,
           canDrop: ({ source }) => source.data.kind === 'card',
           getData: () => ({ kind: 'column', ...columnData.get(el)! }),
@@ -163,9 +196,8 @@ export function useBoardDnd(onDrop: (plan: DropPlan) => void) {
 
   const vBoard: Directive<HTMLElement> = {
     mounted(el) {
-      cleanups.set(
-        el,
-        autoScrollForElements({
+      register(el, (m) =>
+        m.autoScrollForElements({
           element: el,
           canScroll: ({ source }) => source.data.kind === 'card',
         }),
@@ -177,34 +209,42 @@ export function useBoardDnd(onDrop: (plan: DropPlan) => void) {
   }
 
   onMounted(() => {
-    const cleanup = monitorForElements({
-      canMonitor: ({ source }) => source.data.kind === 'card',
-      onDrop: ({ source, location }) => {
-        clearVisuals()
-        const target = location.current.dropTargets[0]
-        if (!target) return
+    let cleanup: Cleanup | null = null
+    let stopped = false
+    dnd().then((m) => {
+      if (stopped) return
+      cleanup = m.monitorForElements({
+        canMonitor: ({ source }) => source.data.kind === 'card',
+        onDrop: ({ source, location }) => {
+          clearVisuals()
+          const target = location.current.dropTargets[0]
+          if (!target) return
 
-        const sourceTaskId = source.data.taskId as string
-        const data = target.data
+          const sourceTaskId = source.data.taskId as string
+          const data = target.data
 
-        if (data.kind === 'card') {
-          onDrop({
-            sourceTaskId,
-            destColumnId: data.columnId as string,
-            targetTaskId: data.taskId as string,
-            edge: extractClosestEdge(data),
-          })
-        } else {
-          onDrop({
-            sourceTaskId,
-            destColumnId: data.columnId as string,
-            targetTaskId: null,
-            edge: null,
-          })
-        }
-      },
+          if (data.kind === 'card') {
+            onDrop({
+              sourceTaskId,
+              destColumnId: data.columnId as string,
+              targetTaskId: data.taskId as string,
+              edge: m.extractClosestEdge(data),
+            })
+          } else {
+            onDrop({
+              sourceTaskId,
+              destColumnId: data.columnId as string,
+              targetTaskId: null,
+              edge: null,
+            })
+          }
+        },
+      })
     })
-    onUnmounted(cleanup)
+    onUnmounted(() => {
+      stopped = true
+      cleanup?.()
+    })
   })
 
   return { draggingTaskId, draggingHeight, dropEdge, dropColumnId, vCard, vColumn, vBoard }
