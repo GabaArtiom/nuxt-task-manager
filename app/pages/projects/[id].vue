@@ -68,7 +68,7 @@
       </div>
     </div>
 
-    <div v-else class="flex gap-4 overflow-x-auto pb-4 flex-1 items-start">
+    <div v-else v-board class="flex gap-4 overflow-x-auto pb-4 flex-1 items-start">
       <!-- Columns -->
       <div
         v-for="column in project?.columns"
@@ -99,28 +99,30 @@
         </div>
 
         <!-- Draggable task list -->
-        <div class="bg-gray-100 dark:bg-gray-800/50 rounded-xl p-2 flex flex-col min-h-[80px]">
-          <Container
-            group-name="tasks"
-            :get-child-payload="(i) => column.tasks[i]"
-            :animation-duration="200"
-            drag-class="task-dragging"
-            drop-class="task-dropping"
-            :drop-placeholder="{
-              className: 'task-placeholder',
-              animationDuration: 200,
-              showOnTop: true,
-            }"
-            class="flex flex-col gap-2 min-h-[40px]"
-            @drag-start="onDragStart"
-            @drag-end="onDragEnd"
-            @drop="(e) => onDrop(e, column)"
-          >
-            <Draggable v-for="task in column.tasks" :key="task.id">
+        <div
+          v-column="{ columnId: column.id }"
+          :class="[
+            'bg-gray-100 dark:bg-gray-800/50 rounded-xl p-2 flex flex-col min-h-[80px] transition-colors',
+            dropColumnId === column.id ? 'ring-2 ring-primary-400/60 ring-inset' : '',
+          ]"
+        >
+          <div class="flex flex-col gap-2 flex-1 min-h-[40px]">
+            <div
+              v-for="task in column.tasks"
+              :key="task.id"
+              v-card="{ taskId: task.id, columnId: column.id }"
+              class="relative"
+            >
+              <div
+                v-if="dropEdge?.taskId === task.id && dropEdge.edge === 'top'"
+                class="pointer-events-none absolute -top-1 inset-x-1 z-10 h-0.5 rounded-full bg-primary-500"
+              />
               <div
                 :data-task-id="task.id"
-                :style="draggingTaskId === task.id ? 'visibility:hidden' : ''"
-                class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-3 cursor-grab active:cursor-grabbing hover:shadow-sm hover:border-primary-300 dark:hover:border-primary-700 transition-all mb-2"
+                :class="[
+                  'bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-3 cursor-grab active:cursor-grabbing hover:shadow-sm hover:border-primary-300 dark:hover:border-primary-700 transition-all',
+                  draggingTaskId === task.id ? 'opacity-40' : '',
+                ]"
                 @click="openTask(task, column)"
               >
                 <div class="mb-2">
@@ -151,8 +153,12 @@
                   </div>
                 </div>
               </div>
-            </Draggable>
-          </Container>
+              <div
+                v-if="dropEdge?.taskId === task.id && dropEdge.edge === 'bottom'"
+                class="pointer-events-none absolute -bottom-1 inset-x-1 z-10 h-0.5 rounded-full bg-primary-500"
+              />
+            </div>
+          </div>
 
           <!-- Add task button -->
           <button
@@ -263,7 +269,7 @@
 import { ArrowLeft, Plus, Pencil, Trash2, X, Settings, CheckSquare } from 'lucide-vue-next'
 import { format } from 'date-fns'
 import { useAuthStore } from '~/stores/auth'
-import { Container, Draggable } from 'vue3-smooth-dnd'
+import type { DropPlan } from '~/composables/useBoardDnd'
 import AddTaskModal from '~/components/projects/AddTaskModal.vue'
 import TaskModal from '~/components/projects/TaskModal.vue'
 import ProjectSettings from '~/components/projects/ProjectSettings.vue'
@@ -287,7 +293,8 @@ const selectedColumn = ref<any>(null)
 const addingToColumn = ref<any>(null)
 const showSettings = ref(false)
 const confirmDialog = ref<any>(null)
-const draggingTaskId = ref<string | null>(null)
+
+const { draggingTaskId, dropEdge, dropColumnId, vCard, vColumn, vBoard } = useBoardDnd(applyDrop)
 
 const isOwner = computed(() =>
   auth.isSuperAdmin ||
@@ -309,39 +316,32 @@ async function loadProject() {
 }
 
 
-function onDragStart({ isSource, payload }: any) {
-  if (isSource && payload) draggingTaskId.value = payload.id
-}
+function applyDrop({ sourceTaskId, destColumnId, targetTaskId, edge }: DropPlan) {
+  const columns = project.value?.columns
+  if (!columns || sourceTaskId === targetTaskId) return
 
-function onDragEnd() {
-  draggingTaskId.value = null
-}
+  const sourceCol = columns.find((c: any) => c.tasks.some((t: any) => t.id === sourceTaskId))
+  if (!sourceCol) return
 
-async function onDrop({ removedIndex, addedIndex, payload }: any, column: any) {
-  draggingTaskId.value = null
-  if (removedIndex === null && addedIndex === null) return
+  const fromIndex = sourceCol.tasks.findIndex((t: any) => t.id === sourceTaskId)
+  const [moved] = sourceCol.tasks.splice(fromIndex, 1)
 
-  if (removedIndex !== null) {
-    if (column.tasks[removedIndex]?.id === payload?.id) {
-      column.tasks.splice(removedIndex, 1)
-    }
+  const destCol = columns.find((c: any) => c.id === destColumnId)
+  if (!destCol) {
+    // Shouldn't happen; restore to keep state consistent.
+    sourceCol.tasks.splice(fromIndex, 0, moved)
+    return
   }
 
-  if (addedIndex !== null) {
-    if (removedIndex === null) {
-      removeTaskFromOtherColumns(payload.id, column.id)
-    }
-    column.tasks.splice(addedIndex, 0, { ...payload, column_id: column.id })
-    await persistBoardOrder()
+  let destIndex = destCol.tasks.length
+  if (targetTaskId) {
+    const idx = destCol.tasks.findIndex((t: any) => t.id === targetTaskId)
+    if (idx !== -1) destIndex = edge === 'bottom' ? idx + 1 : idx
   }
-}
 
-function removeTaskFromOtherColumns(taskId: string, targetColumnId: string) {
-  for (const col of project.value?.columns ?? []) {
-    if (col.id === targetColumnId) continue
-    const idx = col.tasks.findIndex((task: any) => task.id === taskId)
-    if (idx !== -1) col.tasks.splice(idx, 1)
-  }
+  moved.column_id = destCol.id
+  destCol.tasks.splice(destIndex, 0, moved)
+  persistBoardOrder()
 }
 
 async function persistBoardOrder() {
@@ -510,24 +510,3 @@ watch(showAddColumn, async (val) => {
   }
 })
 </script>
-
-<style>
-/* Карточка пока тащишь */
-.task-dragging {
-  transform: rotate(2deg) scale(1.04) !important;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.18), 0 8px 16px rgba(0,0,0,0.1) !important;
-  opacity: 0.95 !important;
-  cursor: grabbing !important;
-  border-radius: 0.5rem;
-}
-
-/* Placeholder куда упадёт */
-.task-placeholder {
-  border: 2px dashed rgb(99 102 241 / 0.5) !important;
-  background: rgb(99 102 241 / 0.06) !important;
-  border-radius: 0.5rem !important;
-  margin-bottom: 0.5rem;
-  opacity: 1 !important;
-}
-
-</style>
