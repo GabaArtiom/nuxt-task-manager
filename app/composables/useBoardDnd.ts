@@ -12,7 +12,7 @@ import {
 } from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge'
 import { autoScrollForElements } from '@atlaskit/pragmatic-drag-and-drop-auto-scroll/element'
 import { setCustomNativeDragPreview } from '@atlaskit/pragmatic-drag-and-drop/element/set-custom-native-drag-preview'
-import { pointerOutsideOfPreview } from '@atlaskit/pragmatic-drag-and-drop/element/pointer-outside-of-preview'
+import { preserveOffsetOnSource } from '@atlaskit/pragmatic-drag-and-drop/element/preserve-offset-on-source'
 
 export interface DropPlan {
   sourceTaskId: string
@@ -65,11 +65,14 @@ export function useBoardDnd(onDrop: (plan: DropPlan) => void) {
           draggable({
             element: el,
             getInitialData: () => ({ kind: 'card', ...cardData.get(el)! }),
-            onGenerateDragPreview: ({ nativeSetDragImage, source }) => {
+            onGenerateDragPreview: ({ nativeSetDragImage, location, source }) => {
               const rect = source.element.getBoundingClientRect()
               setCustomNativeDragPreview({
                 nativeSetDragImage,
-                getOffset: pointerOutsideOfPreview({ x: '12px', y: '8px' }),
+                getOffset: preserveOffsetOnSource({
+                  element: source.element,
+                  input: location.current.input,
+                }),
                 render: ({ container }) => {
                   const clone = source.element.cloneNode(true) as HTMLElement
                   clone.style.width = `${rect.width}px`
