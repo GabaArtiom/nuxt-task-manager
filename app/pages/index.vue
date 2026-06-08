@@ -1,4 +1,8 @@
 <script setup lang="ts">
 definePageMeta({ middleware: 'auth' })
-navigateTo('/projects', { replace: true })
+await navigateTo('/projects', { replace: true })
 </script>
+
+<template>
+  <div />
+</template>

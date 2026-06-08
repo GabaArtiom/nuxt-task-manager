@@ -1,6 +1,6 @@
 <template>
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" @click.self="$emit('close')">
-    <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 w-full max-w-4xl h-[85vh] flex flex-col overflow-hidden shadow-2xl">
+    <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 w-full max-w-4xl h-[98vh] flex flex-col overflow-hidden shadow-2xl">
       <div class="flex items-center gap-3 px-6 pt-5 pb-4 border-b border-gray-100 dark:border-gray-800">
         <input
           v-model="form.title"
@@ -84,17 +84,20 @@
             </div>
 
             <div v-if="form.checklist.length" class="space-y-2">
-              <button
+              <div
                 v-for="item in form.checklist"
                 :key="item.id"
-                type="button"
+                role="button"
+                tabindex="0"
                 :class="[
-                  'group flex w-full items-center gap-2 rounded-lg border px-2.5 py-2 text-left transition-colors',
+                  'group flex w-full cursor-pointer items-center gap-2 rounded-lg border px-2.5 py-2 text-left transition-colors',
                   item.checked
                     ? 'border-primary-200 bg-primary-50/70 dark:border-primary-900/60 dark:bg-primary-950/20'
                     : 'border-gray-200 bg-gray-50 hover:border-gray-300 dark:border-gray-800 dark:bg-gray-900/60 dark:hover:border-gray-700',
                 ]"
                 @click="toggleChecklistItem(item)"
+                @keydown.enter.prevent="toggleChecklistItem(item)"
+                @keydown.space.prevent="toggleChecklistItem(item)"
               >
                 <span
                   :class="[
@@ -145,7 +148,7 @@
                 >
                   <Trash2 class="w-3.5 h-3.5" />
                 </button>
-              </button>
+              </div>
             </div>
             <button
               v-else
